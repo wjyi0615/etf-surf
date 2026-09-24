@@ -23,6 +23,16 @@ function recommend(a,funds){
  const selected=funds.filter(match).sort((a,b)=>a.ticker.localeCompare(b.ticker));
  return {title,reason:reason+(selected.length?'':' 현재 등록 범위에는 조건에 맞는 상품이 없습니다. 관심 시장을 바꾸거나 전체 탐색에서 살펴보세요.'),funds:selected,kind:selected.length?'candidates':'unavailable'};
 }
+function explanation(e){
+ const common={
+  equity:{why:'여러 기업에 나누어 투자하는 대표지수 후보라서 시장 전체의 흐름을 배우기 좋아요.',risk:'주식시장이 하락하면 ETF 가격도 내려갈 수 있어요.',check:'추종지수·총보수·환율 영향·가격 수익률'},
+  bonds:{why:'채권 가격과 금리의 관계를 배울 수 있는 국내 국고채 후보예요.',risk:'금리가 오르면 채권 ETF 가격이 하락할 수 있고 원금은 보장되지 않아요.',check:'채권 만기·금리 민감도·총보수·분배금'},
+  commodity:{why:'주식과 다른 움직임을 보일 수 있는 원자재 학습 후보예요.',risk:'선물 교체 비용과 가격 변동이 있고 금 현물과 같은 상품이 아니에요.',check:'선물 구조·환헤지·총보수·롤오버 비용'},
+  theme:{why:'특정 산업에 집중했을 때의 기회와 위험을 공부할 수 있어요.',risk:'한 산업에 집중해 가격 변동과 손실이 커질 수 있어요.',check:'산업 집중도·구성종목·총보수·최대낙폭'}
+ };
+ const base=common[e.category]||common.equity;
+ return {...base,why:e.strategy==='dividend'?'분배금 전략을 살펴볼 수 있는 후보라서 주가와 분배금을 함께 공부하기 좋아요.':base.why};
+}
 /** Same observed dates across products; no distribution reinvestment. */
 function performance(fund,months=12){
  const i=root.ETFCore.rangeStart(fund.dates,months);
@@ -31,6 +41,28 @@ function performance(fund,months=12){
  const values=prices.map(p=>{peak=Math.max(peak,p);mdd=Math.min(mdd,p/peak-1);return p/base-1;});
  return {dates:fund.dates.slice(i),values,total:values.at(-1),mdd};
 }
-const api={choices,recommend,performance};
+function scenario(fund,{monthly,months}){
+ if(!fund||!Number.isFinite(monthly)||monthly<1000||monthly>1e8||![12,36,60].includes(months))throw Error('투자금과 기간을 확인해 주세요.');
+ const i=root.ETFCore.rangeStart(fund.dates,months); if(i<0)return null;
+ return root.ETFCore.simulate(fund,{start:fund.dates[i],end:fund.dates.at(-1),monthly});
+}
+function portfolioScenario(funds,weights,{monthly,months}){
+ if(!Array.isArray(funds)||funds.length<1||funds.length>3||!Number.isFinite(monthly)||monthly<1000||monthly>1e8||![12,36,60].includes(months))throw Error('ETF 1~3개, 투자금과 기간을 확인해 주세요.');
+ const total=Object.values(weights).reduce((a,v)=>a+v,0);
+ if(Math.abs(total-1)>1e-9||funds.some(e=>!Number.isFinite(weights[e.ticker])||weights[e.ticker]<=0))throw Error('비중의 합계가 100%가 되도록 입력해 주세요.');
+ const i=root.ETFCore.rangeStart(funds[0].dates,months);if(i<0)return null;
+ const rows=funds[0].dates.map((date,index)=>({date,index})).slice(i),units=Object.fromEntries(funds.map(e=>[e.ticker,0]));
+ let cash=0,invested=0,previous=0,growth=1,peak=1,mdd=0,lastMonth='';
+ const history=rows.map(({date,index},row)=>{
+  const before=funds.reduce((sum,e)=>sum+units[e.ticker]*e.prices[index],0)+cash;
+  if(row&&previous>0)growth*=before/previous;
+  peak=Math.max(peak,growth);mdd=Math.min(mdd,growth/peak-1);
+  if(date.slice(0,7)!==lastMonth){const deposit=monthly;cash+=deposit;invested+=deposit;funds.forEach(e=>{const amount=deposit*weights[e.ticker];const bought=Math.floor(amount/e.prices[index]);units[e.ticker]+=bought;cash-=bought*e.prices[index]});}
+  lastMonth=date.slice(0,7);previous=funds.reduce((sum,e)=>sum+units[e.ticker]*e.prices[index],0)+cash;
+  return {date,value:previous,invested,growth};
+ });
+ return {history,invested,value:previous,profit:previous-invested,return:previous/invested-1,mdd,units,cash,monthCount:new Set(rows.map(r=>r.date.slice(0,7))).size};
+}
+const api={choices,recommend,explanation,performance,scenario,portfolioScenario};
 if(typeof module!=='undefined')module.exports=api;root.SurfRules=api;
 })(typeof window!=='undefined'?window:globalThis);
