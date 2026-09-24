@@ -46,6 +46,23 @@ function scenario(fund,{monthly,months}){
  const i=root.ETFCore.rangeStart(fund.dates,months); if(i<0)return null;
  return root.ETFCore.simulate(fund,{start:fund.dates[i],end:fund.dates.at(-1),monthly});
 }
-const api={choices,recommend,explanation,performance,scenario};
+function portfolioScenario(funds,weights,{monthly,months}){
+ if(!Array.isArray(funds)||funds.length<1||funds.length>3||!Number.isFinite(monthly)||monthly<1000||monthly>1e8||![12,36,60].includes(months))throw Error('ETF 1~3개, 투자금과 기간을 확인해 주세요.');
+ const total=Object.values(weights).reduce((a,v)=>a+v,0);
+ if(Math.abs(total-1)>1e-9||funds.some(e=>!Number.isFinite(weights[e.ticker])||weights[e.ticker]<=0))throw Error('비중의 합계가 100%가 되도록 입력해 주세요.');
+ const i=root.ETFCore.rangeStart(funds[0].dates,months);if(i<0)return null;
+ const rows=funds[0].dates.map((date,index)=>({date,index})).slice(i),units=Object.fromEntries(funds.map(e=>[e.ticker,0]));
+ let cash=0,invested=0,previous=0,growth=1,peak=1,mdd=0,lastMonth='';
+ const history=rows.map(({date,index},row)=>{
+  const before=funds.reduce((sum,e)=>sum+units[e.ticker]*e.prices[index],0)+cash;
+  if(row&&previous>0)growth*=before/previous;
+  peak=Math.max(peak,growth);mdd=Math.min(mdd,growth/peak-1);
+  if(date.slice(0,7)!==lastMonth){const deposit=monthly;cash+=deposit;invested+=deposit;funds.forEach(e=>{const amount=deposit*weights[e.ticker];const bought=Math.floor(amount/e.prices[index]);units[e.ticker]+=bought;cash-=bought*e.prices[index]});}
+  lastMonth=date.slice(0,7);previous=funds.reduce((sum,e)=>sum+units[e.ticker]*e.prices[index],0)+cash;
+  return {date,value:previous,invested,growth};
+ });
+ return {history,invested,value:previous,profit:previous-invested,return:previous/invested-1,mdd,units,cash,monthCount:new Set(rows.map(r=>r.date.slice(0,7))).size};
+}
+const api={choices,recommend,explanation,performance,scenario,portfolioScenario};
 if(typeof module!=='undefined')module.exports=api;root.SurfRules=api;
 })(typeof window!=='undefined'?window:globalThis);
