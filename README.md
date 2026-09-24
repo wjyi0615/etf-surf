@@ -1,4 +1,4 @@
-# ETF Travel
+# ETF Surf
 
 초보 투자자가 ETF를 이해하고 비교 후보를 찾는 여행.
 
@@ -15,4 +15,5 @@
 `docs/index.html`을 브라우저에서 열면 됩니다. 외부 패키지 설치가 필요 없습니다.
 
 ## 개발
-`codex/` 브랜치에서 작업합니다. GitHub 원격 저장소 및 배포는 아직 연결되지 않았습니다.
+`codex/` 브랜치에서 작업합니다. GitHub 저장소: https://github.com/wjyi0615/etf-surf
+웹사이트 배포는 아직 설정하지 않았습니다.
