@@ -21,3 +21,9 @@ dd small{display:block}
 .brand-icon{border-radius:50% 50% 45% 45%;position:relative;overflow:hidden}
 .brand-icon::after{content:'~';position:absolute;left:7px;top:1px;color:#b8e7ed;font-size:25px;line-height:1}
 .card{box-shadow:0 8px 24px #12304a0a}
+
+/* White canvas, tinted information cards for easier reading. */
+:root{--paper:#fff}
+.card{background:#eef8fa}
+.card:hover{background:#e6f5f7}
+.feature-grid>div{background:#f3fafb}
