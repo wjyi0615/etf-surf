@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -p 'test_*.py' -v
       - run: node tests/surf.cjs
-      - name: Collect all nine ETFs
+      - name: Collect all registered ETFs
         id: collect
         continue-on-error: true
         run: python scripts/update_prices.py

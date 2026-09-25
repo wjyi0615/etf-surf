@@ -2,7 +2,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const ctx={window:{},console,Date};vm.createContext(ctx);
 for(const f of ['prices','fundamentals','data-core','rules'])vm.runInContext(fs.readFileSync(`docs/${f}.js`,'utf8'),ctx);
 const C=ctx.window.ETFCore,R=ctx.window.SurfRules,funds=C.catalog(ctx.window.ETF_DATA);
-assert.equal(funds.length,9);
+assert.equal(funds.length,20);
 let cases=0;
 for(const goal of R.choices.goal)for(const horizon of R.choices.horizon)for(const risk of R.choices.risk)for(const market of R.choices.market){
  const result=R.recommend({goal,horizon,risk,market},funds);cases++;
@@ -13,7 +13,7 @@ for(const goal of R.choices.goal)for(const horizon of R.choices.horizon)for(cons
 }
 assert.throws(()=>R.recommend({},funds));
 assert.throws(()=>R.recommend({goal:'growth',horizon:'long',risk:'invented',market:'any'},funds));
-assert.equal(R.recommend({goal:'income',horizon:'long',risk:'accept',market:'us'},funds).kind,'unavailable');
+assert.equal(R.recommend({goal:'income',horizon:'long',risk:'accept',market:'us'},funds).funds.length,3);
 assert.equal(R.recommend({goal:'growth',horizon:'long',risk:'accept',market:'any'},[]).funds.length,0);
 // Dates and drawdown: zero-based price path, no deposits/distributions.
 const synthetic={dates:['2024-01-01','2024-06-01','2025-01-01'],prices:[100,120,90]};
@@ -69,7 +69,7 @@ assert.ok(elements.main.innerHTML.includes('같은 기준의 다른 상품이 �
 ctx.location.hash='#/etf/161510';vm.runInContext('render(false)',ctx);
 assert.ok(elements.main.innerHTML.includes('일부 8건 확인'));
 for(const file of ['index.html','style.css','icon.svg','app.js','rules.js','data-core.js','prices.js','fundamentals.js'])assert.ok(fs.statSync('docs/'+file).size>0);
-console.log(`${cases} questionnaire combinations; missing/conflicting inputs; price drawdown; nine ETF details; routes and comparison passed.`);
+console.log(`${cases} questionnaire combinations; missing/conflicting inputs; price drawdown; all ETF details; routes and comparison passed.`);
 // Every questionnaire outcome keeps the beginner path honest, including no candidates.
 for(const goal of R.choices.goal)for(const horizon of R.choices.horizon)for(const risk of R.choices.risk)for(const market of R.choices.market){
  const a={goal,horizon,risk,market},r=R.recommend(a,funds);
@@ -89,3 +89,34 @@ for(const goal of R.choices.goal)for(const horizon of R.choices.horizon)for(cons
  }
 }
 console.log('Beginner result flow: all answer combinations, hidden extra candidates and valid peer pairs passed.');
+// Expanded taxonomy, peer identity and differing listing dates.
+assert.equal(C.filterEtfs(funds,{group:'sp500'}).length,3);
+assert.equal(C.filterEtfs(funds,{group:'nasdaq'}).length,2);
+assert.equal(C.filterEtfs(funds,{group:'usdividend',region:'us'}).length,3);
+assert.equal(C.filterEtfs(funds,{category:'cash'}).length,2);
+assert.equal(C.filterEtfs(funds,{group:'sp500',region:'korea'}).length,0);
+for(const group of ['sp500','nasdaq','usdividend']){
+ const list=C.filterEtfs(funds,{group});
+ assert.equal(R.peers(list[0],funds).length,list.length-1);
+ const aligned=R.comparison(list);
+ assert.equal(aligned.length,list.length);
+ assert.ok(aligned.every(s=>JSON.stringify(s.p.dates)===JSON.stringify(aligned[0].p.dates)));
+}
+assert.equal(R.peers(funds.find(e=>e.ticker==='459580'),funds).length,0);
+assert.equal(R.peers(funds.find(e=>e.ticker==='153130'),funds).length,0);
+assert.equal(R.scenario(funds.find(e=>e.ticker==='489250'),{monthly:100000,months:36}),null);
+assert.equal(funds[0].dates[0],'2022-12-29');
+assert.equal(funds.find(e=>e.ticker==='489250').dates[0],'2024-08-13');
+const shifted=[{dates:['2024-01-01','2024-06-01','2025-01-01'],prices:[100,200,150]},{dates:['2024-01-01','2024-07-01','2025-01-01'],prices:[100,20,120]}];
+const shared=R.comparison(shifted);
+assert.equal(shared[0].p.dates.length,2);
+assert.equal(shared[0].p.mdd,0); // Non-common intermediate observations are excluded.
+assert.equal(R.comparison([shifted[0],{dates:['2024-12-01','2025-01-01'],prices:[100,110]}]).length,0);
+for(const topic of ['sp500','nasdaq','usdividend','shortbond','rates']){
+ ctx.location.hash='#/explore/'+topic;vm.runInContext('render(false)',ctx);
+ assert.equal((elements.main.innerHTML.match(/<article class="card">/g)||[]).length,C.filterEtfs(funds,{group:topic}).length);
+}
+assert.ok(R.productGuide(funds.find(e=>e.ticker==='489250')).target.includes('미국'));
+assert.ok(R.productGuide(funds.find(e=>e.ticker==='153130')).target.includes('짧은'));
+assert.ok(R.productGuide(funds.find(e=>e.ticker==='423160')).target.includes('합성'));
+console.log('Expanded catalog filters, same-index peers, listing dates and common-calendar metrics passed.');

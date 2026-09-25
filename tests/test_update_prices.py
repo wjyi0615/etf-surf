@@ -49,3 +49,12 @@ class Updates(unittest.TestCase):
     def test_completed_session(self):
         self.assertEqual(cutoff(datetime.fromisoformat('2026-09-24T17:59:00+09:00')), date(2026,9,23))
         self.assertEqual(cutoff(datetime.fromisoformat('2026-09-24T18:00:00+09:00')), date(2026,9,24))
+
+    def test_later_listing_does_not_shorten_existing_history(self):
+        self.old['universe'].append({'symbol':'489250'})
+        new = refresh(self.old, date(2026,9,24), lambda s: payload(('20260923','20260924')) if s=='489250' else payload())
+        self.assertEqual(new['dates_by_symbol']['069500'][0], '2026-09-22')
+        self.assertEqual(new['dates_by_symbol']['489250'][0], '2026-09-23')
+        self.assertEqual(len(new['prices']['489250']), 2)
+        with self.assertRaises(ValueError):
+            refresh(new, date(2026,9,24), lambda s: payload(('20260922','20260924')) if s=='489250' else payload())

@@ -10,10 +10,10 @@ function recommend(a,funds){
  if(a.risk==='cautious'){
   title='채권 ETF의 구조부터 살펴봐요';
   reason='가격 변동이 부담스럽다는 답변을 먼저 반영했어요. 등록된 국내 국고채 ETF를 학습 후보로 보여드립니다. 금리 상승으로 손실이 날 수 있으며, 배당·해외시장 선호보다 손실에 대한 답변을 우선했어요.';
-  match=e=>e.category==='bonds';
+  match=e=>e.category==='bonds'&&e.group==='government';
  }else if(a.goal==='income'){
   title='분배금과 주가를 함께 살펴봐요';
-  reason='분배금에 관심이 있다는 답변에 따라 배당 전략을 살펴봅니다. 분배금의 지급 여부와 규모는 보장되지 않으며 주가 하락으로 총손실이 날 수 있어요. 현재 등록된 배당 전략은 국내 상품 1개뿐입니다.';
+  reason='분배금에 관심이 있다는 답변에 따라 국내·미국 배당 전략 중 관심 시장을 살펴봅니다. 분배금의 지급 여부와 규모는 보장되지 않으며 주가·환율 하락으로 손실이 날 수 있어요.';
   match=e=>e.strategy==='dividend' && (a.market==='any'||e.region===a.market);
  }else{
   title='넓은 시장을 따라가는 ETF부터';
@@ -24,6 +24,9 @@ function recommend(a,funds){
  return {title,reason:reason+(selected.length?'':' 현재 등록 범위에는 조건에 맞는 상품이 없습니다. 관심 시장을 바꾸거나 전체 탐색에서 살펴보세요.'),funds:selected,kind:selected.length?'candidates':'unavailable'};
 }
 function explanation(e){
+ if(e.category==='cash')return {why:'단기 금리와 합성 ETF의 구조를 살펴볼 수 있어요.',risk:'예금자보호나 원금 보장이 없고, 거래상대방 위험과 금리 변화에 따른 수익 변화가 있어요.',check:'비교지수·합성 구조·거래상대방·총보수'};
+ if(e.strategy==='short')return {why:'만기가 짧은 채권이 금리 변화에 어떻게 반응하는지 배울 수 있어요.',risk:'단기채도 금리·신용 위험으로 손실이 발생할 수 있어요.',check:'편입 채권·만기·신용등급·총보수'};
+ if(e.group==='nasdaq')return {why:'나스닥100과 S&P500의 구성 차이를 배울 수 있어요.',risk:'기술·성장 기업 비중과 환율 변화에 영향을 받아 손실이 커질 수 있어요.',check:'구성종목·산업 비중·환헤지 여부·총보수'};
  const common={
   equity:{why:'여러 기업에 나누어 투자하는 대표지수 후보라서 시장 전체의 흐름을 배우기 좋아요.',risk:'주식시장이 하락하면 ETF 가격도 내려갈 수 있어요.',check:'추종지수·총보수·환율 영향·가격 수익률'},
   bonds:{why:'채권 가격과 금리의 관계를 배울 수 있는 국내 국고채 후보예요.',risk:'금리가 오르면 채권 ETF 가격이 하락할 수 있고 원금은 보장되지 않아요.',check:'채권 만기·금리 민감도·총보수·분배금'},
@@ -41,6 +44,9 @@ function peers(e,funds){
 }
 /** Educational drivers, not an attribution of today's observed price movement. */
 function productGuide(e){
+ if(e.category==='cash')return {target:e.benchmark+'를 비교지수로 사용하는 합성 액티브 상품이에요. 은행 예금이나 확정금리 상품은 아니에요.',drivers:'단기 금리 수준, 비용, 장외파생상품 거래상대방의 계약 이행 여부에 영향을 받아요.',check:'CD와 KOFR는 서로 다른 금리예요. 합성 구조와 담보·거래상대방, 호가 차이를 확인해요.',lesson:'cash'};
+ if(e.strategy==='short')return {target:'만기가 짧은 국내 채권에 투자해요. 국고채·통안채 등 실제 편입 대상은 상품마다 달라요.',drivers:'금리와 보유 채권의 신용도, 이자와 비용에 영향을 받아요. 단기라는 이름이 손실이 없다는 뜻은 아니에요.',check:'지수와 편입 채권, 만기와 금리 민감도를 비교해요. 단기채끼리도 같은 지수를 따르지는 않아요.',lesson:'bonds'};
+ if(e.group==='nasdaq')return {target:'미국 나스닥100 지수를 따르는 상품이에요. S&P500과 구성종목·업종 비중이 달라요.',drivers:'기술·성장 기업의 주가와 원·달러 환율에 영향을 받아요. 여러 기업을 담아도 특정 업종의 영향이 클 수 있어요.',check:'S&P500과 겹치는 종목과 업종 비중, 환헤지 여부와 비용을 살펴봐요.',lesson:'nasdaq'};
  if(e.category==='commodity')return {
   target:'금 선물에 투자하고 환헤지를 추구하는 상품이에요. 금 현물을 직접 보유하는 방식과 구분해요.',
   drivers:'금 선물 가격, 만기 계약을 교체하는 과정의 손익과 비용, 환헤지 결과가 성과에 영향을 줄 수 있어요.',
@@ -54,7 +60,7 @@ function productGuide(e){
   drivers:'보유 채권 가격과 이자 등이 성과에 영향을 줘요. 일반적으로 시장금리가 오르면 기존 채권 가격은 하락하는 방향으로 작용해요.',
   check:'편입 채권의 만기와 금리 민감도, 지수의 종목 교체 규칙을 살펴봐요. 예금과 달리 원금은 보장되지 않아요.',lesson:'risk'};
  if(e.strategy==='dividend')return {
-  target:'국내 고배당주 중심으로 투자하는 상품이에요. 분배금을 받더라도 투자금 전체의 가치가 줄어들 수 있어요.',
+  target:(e.region==='us'?'미국 배당주 지수를 따라가는 상품이에요. 환율 변화도 원화 성과에 영향을 줘요.':'국내 고배당주 중심으로 투자하는 상품이에요.')+' 분배금을 받더라도 투자금 전체의 가치가 줄어들 수 있어요.',
   drivers:'편입 주식의 가격과 배당, 분배금 지급 등이 성과에 영향을 줘요. 지급액만으로 투자 성과를 판단하기 어려워요.',
   check:'분배금 지급 내역과 가격 변화를 함께 확인해요. 최근 지급액을 그대로 미래 월소득으로 가정하지 않아요.',lesson:'distribution'};
  return e.region==='us'?{
@@ -83,6 +89,14 @@ function scenario(fund,{monthly,months}){
  if(result.monthCount!==months)return null;
  return {...result,start:result.history[0].date,end};
 }
-const api={choices,recommend,explanation,productGuide,peers,performance,scenario};
+/** Align every selected fund to identical observed dates; never fill absent prices. */
+function comparison(list,months=12){
+ if(!list.length)return [];
+ const maps=list.map(e=>new Map(e.dates.map((d,i)=>[d,e.prices[i]])));
+ const dates=list[0].dates.filter(d=>maps.every(m=>m.has(d)));
+ if(dates.length<2||root.ETFCore.rangeStart(dates,months)<0)return [];
+ return list.map((e,i)=>({e,p:performance({...e,dates,prices:dates.map(d=>maps[i].get(d))},months)}));
+}
+const api={choices,recommend,explanation,productGuide,peers,performance,comparison,scenario};
 if(typeof module!=='undefined')module.exports=api;root.SurfRules=api;
 })(typeof window!=='undefined'?window:globalThis);
