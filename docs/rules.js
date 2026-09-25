@@ -33,6 +33,38 @@ function explanation(e){
  const base=common[e.category]||common.equity;
  return {...base,why:e.strategy==='dividend'?'분배금 전략을 살펴볼 수 있는 후보라서 주가와 분배금을 함께 공부하기 좋아요.':base.why};
 }
+/** Match the registered index and implementation, not merely a broad category. */
+function peers(e,funds){
+ return funds.filter(x=>x.ticker!==e.ticker && !!e.benchmark && x.benchmark===e.benchmark
+  && x.category===e.category && x.region===e.region && x.strategy===e.strategy && x.productType===e.productType)
+  .sort((a,b)=>a.ticker.localeCompare(b.ticker));
+}
+/** Educational drivers, not an attribution of today's observed price movement. */
+function productGuide(e){
+ if(e.category==='commodity')return {
+  target:'금 선물에 투자하고 환헤지를 추구하는 상품이에요. 금 현물을 직접 보유하는 방식과 구분해요.',
+  drivers:'금 선물 가격, 만기 계약을 교체하는 과정의 손익과 비용, 환헤지 결과가 성과에 영향을 줄 수 있어요.',
+  check:'금 현물과 선물 중 어느 방식인지, 선물 교체 방식과 환헤지 정책을 공식 자료에서 확인해요.',lesson:'currency'};
+ if(e.category==='theme')return {
+  target:'반도체 산업의 기업들에 집중하는 주식 ETF예요. 여러 기업을 담아도 산업은 한쪽에 집중될 수 있어요.',
+  drivers:'편입 기업의 주가 변화와 비중에 영향을 받아요. 반도체 업황과 기업 실적에 대한 기대도 가격에 반영될 수 있어요.',
+  check:'상위 종목의 비중과 산업 집중도를 확인해요. 이름이 비슷해도 국내·해외 또는 편입 종목이 다를 수 있어요.',lesson:'risk'};
+ if(e.category==='bonds')return {
+  target:'국내 국고채에 투자하는 상품이에요. 이름의 3년은 투자자가 3년 뒤 원금을 보장받는다는 의미가 아니에요.',
+  drivers:'보유 채권 가격과 이자 등이 성과에 영향을 줘요. 일반적으로 시장금리가 오르면 기존 채권 가격은 하락하는 방향으로 작용해요.',
+  check:'편입 채권의 만기와 금리 민감도, 지수의 종목 교체 규칙을 살펴봐요. 예금과 달리 원금은 보장되지 않아요.',lesson:'risk'};
+ if(e.strategy==='dividend')return {
+  target:'국내 고배당주 중심으로 투자하는 상품이에요. 분배금을 받더라도 투자금 전체의 가치가 줄어들 수 있어요.',
+  drivers:'편입 주식의 가격과 배당, 분배금 지급 등이 성과에 영향을 줘요. 지급액만으로 투자 성과를 판단하기 어려워요.',
+  check:'분배금 지급 내역과 가격 변화를 함께 확인해요. 최근 지급액을 그대로 미래 월소득으로 가정하지 않아요.',lesson:'distribution'};
+ return e.region==='us'?{
+  target:'미국 대형주 시장을 따라가는 국내 상장 ETF예요. 원화로 거래하지만 투자 대상은 미국 주식이에요.',
+  drivers:'미국 주가와 원·달러 환율 변화가 함께 원화 가격에 반영돼요. 원화 거래라는 이유로 환율 영향을 피할 수 있는 것은 아니에요.',
+  check:'추종지수와 환헤지 여부, 총보수 외 추가 비용을 확인해요. 다른 미국 주가지수 상품과 투자 대상이 같은지도 살펴봐요.',lesson:'currency'}:{
+  target:'KOSPI200 지수를 따라가는 국내 주식 ETF예요. 지수 구성과 종목 비중에 따라 여러 기업에 투자해요.',
+  drivers:'편입 주식의 가격 변화와 비중이 성과에 영향을 줘요. 같은 지수를 따라도 보수·거래가격·분배금 때문에 차이가 날 수 있어요.',
+  check:'같은 KOSPI200 상품끼리 추종 방식과 비용을 비교해요. 최신 공식 자료의 기준일과 실제 매수·매도 호가도 확인해요.',lesson:'index'};
+}
 /** Same observed dates across products; no distribution reinvestment. */
 function performance(fund,months=12){
  const i=root.ETFCore.rangeStart(fund.dates,months);
@@ -51,6 +83,6 @@ function scenario(fund,{monthly,months}){
  if(result.monthCount!==months)return null;
  return {...result,start:result.history[0].date,end};
 }
-const api={choices,recommend,explanation,performance,scenario};
+const api={choices,recommend,explanation,productGuide,peers,performance,scenario};
 if(typeof module!=='undefined')module.exports=api;root.SurfRules=api;
 })(typeof window!=='undefined'?window:globalThis);
