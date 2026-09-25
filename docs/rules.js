@@ -43,8 +43,13 @@ function performance(fund,months=12){
 }
 function scenario(fund,{monthly,months}){
  if(!fund||!Number.isFinite(monthly)||monthly<1000||monthly>1e8||![12,36,60].includes(months))throw Error('투자금과 기간을 확인해 주세요.');
- const i=root.ETFCore.rangeStart(fund.dates,months); if(i<0)return null;
- return root.ETFCore.simulate(fund,{start:fund.dates[i],end:fund.dates.at(-1),monthly});
+ const end=fund.dates.at(-1),lastMonth=end.slice(0,7);
+ const first=new Date(lastMonth+'-01T00:00:00Z');first.setUTCMonth(first.getUTCMonth()-(months-1));
+ const start=first.toISOString().slice(0,10);
+ if(fund.dates[0]>start)return null;
+ const result=root.ETFCore.simulate(fund,{start,end,monthly});
+ if(result.monthCount!==months)return null;
+ return {...result,start:result.history[0].date,end};
 }
 const api={choices,recommend,explanation,performance,scenario};
 if(typeof module!=='undefined')module.exports=api;root.SurfRules=api;
