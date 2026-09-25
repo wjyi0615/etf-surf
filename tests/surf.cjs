@@ -127,3 +127,10 @@ for(const e of funds)assert.ok(elements.main.innerHTML.includes(`href="#/etf/${e
 vm.runInContext("catalogView='returns';render(false)",ctx);
 assert.ok(elements.main.innerHTML.includes('1개월'));
 assert.ok(elements.main.innerHTML.includes('분배금 재투자 수익률이 아니며'));
+
+const holdingHtml=vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx);
+assert.ok(holdingHtml.includes('2026-03-31'));
+assert.equal((holdingHtml.match(/<meter /g)||[]).length,10);
+assert.ok(vm.runInContext("composition(funds.find(e=>e.ticker==='102110'))",ctx).includes('아직 확보하지'));
+ctx.window.ETF_FUNDAMENTALS.holdings['069500'].items[0].weight=101;
+assert.ok(vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx).includes('아직 확보하지'));
