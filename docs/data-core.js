@@ -14,6 +14,8 @@
     if (dates.some((d,i) => !validDate(d) || (i && d <= dates[i-1]))) throw Error('가격 날짜가 올바르지 않습니다.');
     const seen = new Set();
     return data.universe.map(e => {
+      const dates = data.dates_by_symbol?.[e.symbol] || data.dates;
+      if (!Array.isArray(dates) || dates.length < 2 || dates.some((d,i) => !validDate(d) || (i && d <= dates[i-1]))) throw Error('상품별 가격 날짜가 올바르지 않습니다.');
       if (!/^\d{6}$/.test(e.symbol) || seen.has(e.symbol)) throw Error('종목코드가 올바르지 않습니다.');
       seen.add(e.symbol);
       const prices = data.prices?.[e.symbol];
@@ -31,7 +33,7 @@
       const distributionHistory = validHistory(history) ? history : null;
       return {
         ticker:e.symbol, name:e.name, issuer:e.manager, category:e.category || 'equity', region:e.region || 'korea', strategy:e.strategy || 'broad', description:e.description || 'KOSPI200을 추종하는 주식 ETF입니다.', productType:e.productType || '국내 주식형 · 패시브',
-        benchmark:e.benchmark || 'KOSPI200', color:e.color, sourceUrl:e.source_url,
+        benchmark:e.benchmark || 'KOSPI200', group:e.group || '', color:e.color, sourceUrl:e.source_url,
         price:prices.at(-1), asOf:dates.at(-1), dates, prices,
         aum:accepted.aum?.value ?? null, expenseRatio:accepted.expenseRatio?.value ?? null, volume:Number.isFinite(volume) && volume >= 0 ? volume : null,
         trackingError:null, premiumDiscount:null, dividendYield:null, inceptionDate:accepted.inceptionDate?.value ?? null, metadata:accepted,
@@ -106,9 +108,9 @@
     if (holdings.some(h=>!Number.isFinite(h.previousWeight)||h.previousWeight<0||h.previousWeight>1||!Number.isFinite(h.priceReturn)||h.priceReturn < -1) || holdings.reduce((s,h)=>s+h.previousWeight,0)>1.000001) throw Error('전일 비중과 동일 기간 수익률을 확인해야 합니다.');
     return holdings.map(h=>({...h,contribution:h.previousWeight*h.priceReturn})).sort((a,b)=>b.contribution-a.contribution);
   }
-  function filterEtfs(list,{category="all",region="all",strategy="all",query=""}={}) {
+  function filterEtfs(list,{category="all",region="all",strategy="all",group="all",query=""}={}) {
     const q=query.trim().toLowerCase();
-    return list.filter(e=>(category==="all"||e.category===category)&&(region==="all"||e.region===region)&&(strategy==="all"||e.strategy===strategy)&&(e.name+e.ticker+e.issuer).toLowerCase().includes(q));
+    return list.filter(e=>(category==="all"||e.category===category)&&(region==="all"||e.region===region)&&(strategy==="all"||e.strategy===strategy)&&(group==="all"||e.group===group)&&(e.name+e.ticker+e.issuer+e.benchmark).toLowerCase().includes(q));
   }
   const api={filterEtfs,fmt,catalog,rangeStart,periodReturn,monthsBefore,simulate,contributions};
   if (typeof module !== 'undefined') module.exports=api; else root.ETFCore=api;

@@ -65,18 +65,24 @@ def fetch(symbol):
 
 
 def refresh(old, end, fetcher=fetch):
-    """Require full prior history, matching calendars, and nonregressing dates."""
+    """Keep each listing's history; require complete overlapping trading calendars."""
     frames = {e['symbol']: parse(fetcher(e['symbol']), end) for e in old['universe']}
     first = old['dates'][0]
-    calendars = [sorted(d for d in rows if d >= first) for rows in frames.values()]
-    dates = calendars[0]
-    if (not dates or any(c != dates for c in calendars) or dates[0] != first
-            or dates[-1] < old['as_of'] or not set(old['dates']).issubset(dates)):
-        raise ValueError('Missing history or mismatched ETF calendars')
+    calendars = {s: sorted(d for d in rows if d >= first) for s, rows in frames.items()}
+    dates = calendars[old['universe'][0]['symbol']]
+    if not dates or dates[0] != first or dates[-1] < old['as_of'] or not set(old['dates']).issubset(dates):
+        raise ValueError('Missing reference history')
+    for symbol, days in calendars.items():
+        prior = old.get('dates_by_symbol', {}).get(symbol, old['dates']) if symbol in old['prices'] else []
+        if (len(days) < 2 or days != [d for d in dates if d >= days[0]]
+                or not set(prior).issubset(days)):
+            raise ValueError('Missing history or mismatched ETF calendars: ' + symbol)
     updated = {**old, 'dates': dates, 'as_of': dates[-1],
                'generated_at': datetime.now(ZoneInfo('UTC')).isoformat(),
-               'prices': {s: [rows[d][0] for d in dates] for s, rows in frames.items()},
-               'volumes': {s: [rows[d][1] for d in dates] for s, rows in frames.items()}}
+               'dates_by_symbol': calendars,
+               'calendar_policy': 'Per-listing dates; complete overlapping sessions; no fill',
+               'prices': {s: [rows[d][0] for d in calendars[s]] for s, rows in frames.items()},
+               'volumes': {s: [rows[d][1] for d in calendars[s]] for s, rows in frames.items()}}
     # Surf calculates metrics from prices; inherited precomputed Lab periods would be stale.
     updated.pop('periods', None)
     return updated
