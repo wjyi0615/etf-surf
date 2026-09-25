@@ -1,0 +1,39 @@
+name: Refresh ETF Surf prices
+on:
+  schedule:
+    - cron: '23 10 * * 1-5'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: surf-prices-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - run: node tests/surf.cjs
+      - name: Collect all nine ETFs
+        id: collect
+        continue-on-error: true
+        run: python scripts/update_prices.py
+      - name: Persist prices or failure status
+        env:
+          TARGET_BRANCH: ${{ github.ref_name }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/prices.js docs/update-status.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'Refresh ETF Surf price status'
+            git push origin "HEAD:$TARGET_BRANCH"
+          fi
+      - name: Report unsuccessful collection
+        if: steps.collect.outcome == 'failure'
+        run: exit 1

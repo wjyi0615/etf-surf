@@ -21,14 +21,26 @@ assert.ok(Math.abs(R.performance(synthetic).mdd+.25)<1e-10);
 assert.ok(Math.abs(R.performance(synthetic).total+.1)<1e-10);
 assert.equal(R.performance({dates:['2025-01-01','2025-02-01'],prices:[100,101]}),null);
 for(const e of funds){const p=R.performance(e);assert.ok(Number.isFinite(p.total));assert.ok(p.mdd<=0);}
+const scenario=R.scenario(funds.find(e=>e.ticker==='069500'),{monthly:100000,months:12});
+assert.equal(scenario.monthCount,12);
+assert.ok(scenario.invested===1200000 && Number.isFinite(scenario.value));
+assert.equal(R.scenario(funds[0],{monthly:100000,months:36}).invested,3600000);
+assert.equal(R.scenario(funds[0],{monthly:100000,months:60}),null);
+assert.ok(scenario.start<=scenario.end);
+assert.throws(()=>R.scenario(funds[0],{monthly:100,months:12}));
+assert.throws(()=>R.scenario(funds[0],{monthly:100000,months:24}));
 const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(){return null}},count:{},toast:{}};
 Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[]},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
 Object.assign(ctx.window,{addEventListener(){},scrollTo(){}});
 vm.runInContext(fs.readFileSync('docs/app.js','utf8'),ctx);
 assert.ok(elements.main.innerHTML.includes('첫 ETF'));
+ctx.window.ETF_UPDATE={state:'failed',attemptedAt:'2026-09-25T10:00:00Z'};
+assert.ok(vm.runInContext('notice()',ctx).includes('마지막 정상 가격'));
+assert.equal((fs.readFileSync('docs/index.html','utf8').match(/<!doctype html>/gi)||[]).length,1);
+assert.ok(!fs.readFileSync('docs/index.html','utf8').includes('#/basket'));
 for(const route of ['guide','explore','compare','learn','method','result','missing']){ctx.location.hash='#/'+route;vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.length>20);}
 vm.runInContext("answers={goal:'growth',horizon:'long',risk:'accept',market:'korea'}",ctx);
-ctx.location.hash='#/result';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('KODEX 200'));
+ctx.location.hash='#/result';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('KODEX 200'));assert.ok(elements.main.innerHTML.includes('투자 시나리오'));
 for(const e of funds){ctx.location.hash='#/etf/'+e.ticker;vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes(e.ticker));}
 ctx.location.hash='#/etf/360750';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('0.0068%'));
 vm.runInContext("selected.add('069500');selected.add('114260');selected.add('161510')",ctx);
