@@ -70,3 +70,22 @@ ctx.location.hash='#/etf/161510';vm.runInContext('render(false)',ctx);
 assert.ok(elements.main.innerHTML.includes('일부 8건 확인'));
 for(const file of ['index.html','style.css','icon.svg','app.js','rules.js','data-core.js','prices.js','fundamentals.js'])assert.ok(fs.statSync('docs/'+file).size>0);
 console.log(`${cases} questionnaire combinations; missing/conflicting inputs; price drawdown; nine ETF details; routes and comparison passed.`);
+// Every questionnaire outcome keeps the beginner path honest, including no candidates.
+for(const goal of R.choices.goal)for(const horizon of R.choices.horizon)for(const risk of R.choices.risk)for(const market of R.choices.market){
+ const a={goal,horizon,risk,market},r=R.recommend(a,funds);
+ vm.runInContext('answers='+JSON.stringify(a),ctx);
+ const html=vm.runInContext('result()',ctx);
+ assert.ok(html.includes('내 답변부터 돌아봐요'));
+ if(r.kind!=='candidates'){assert.ok(!html.includes('data-peer='));assert.ok(!html.includes('id="scenario"'));}
+ else {
+  assert.ok(html.indexOf('02 / UNDERSTAND')<html.indexOf('03 / EXPLORE'));
+  assert.ok(html.indexOf('03 / EXPLORE')<html.indexOf('04 / COMPARE'));
+  assert.ok(html.includes('선택 전에, 세 가지'));
+  const beforeMore=html.split('나머지 후보')[0];
+  assert.equal((beforeMore.match(/<article class="card">/g)||[]).length,Math.min(3,r.funds.length));
+  for(const fund of r.funds)assert.ok(html.includes(fund.ticker));
+  const pairs=[...html.matchAll(/data-peer="([^"]+)"/g)];
+  for(const [,pair] of pairs){const [a,b]=pair.split(':');assert.ok(R.peers(funds.find(e=>e.ticker===a),r.funds).some(e=>e.ticker===b));}
+ }
+}
+console.log('Beginner result flow: all answer combinations, hidden extra candidates and valid peer pairs passed.');
