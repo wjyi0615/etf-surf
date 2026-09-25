@@ -131,6 +131,17 @@ assert.ok(elements.main.innerHTML.includes('분배금 재투자 수익률이 아
 const holdingHtml=vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx);
 assert.ok(holdingHtml.includes('2026-03-31'));
 assert.equal((holdingHtml.match(/<meter /g)||[]).length,10);
-assert.ok(vm.runInContext("composition(funds.find(e=>e.ticker==='102110'))",ctx).includes('아직 확보하지'));
+assert.ok(vm.runInContext("composition({...funds[0],ticker:'999999'})",ctx).includes('아직 확보하지'));
 ctx.window.ETF_FUNDAMENTALS.holdings['069500'].items[0].weight=101;
 assert.ok(vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx).includes('아직 확보하지'));
+
+for(const e of funds){
+ const h=ctx.window.ETF_FUNDAMENTALS.holdings[e.ticker];
+ assert.ok(h && h.asOf && h.sourceUrl.startsWith('https://'));
+ if(e.ticker==='069500')continue; // Invalid-value fixture above deliberately mutates this snapshot.
+ const html=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ assert.ok(!html.includes('아직 확보하지'));
+ assert.equal((html.match(/<meter /g)||[]).length,h.items.length);
+ if(h.kind==='structure')assert.ok(html.includes('실제 편입 비중표가 아닌'));
+}
+console.log('All 20 ETFs: 17 composition snapshots and 3 sourced structure descriptions passed.');
