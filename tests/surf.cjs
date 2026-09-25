@@ -47,5 +47,26 @@ vm.runInContext("selected.add('069500');selected.add('114260');selected.add('161
 ctx.location.hash='#/compare';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('<polyline'));assert.ok(elements.main.innerHTML.includes('서로 다른'));
 // Invalid snapshot still leaves lessons available.
 const invalid={...ctx.window.ETF_DATA,dates:[]};assert.throws(()=>C.catalog(invalid));
+const kodex=funds.find(e=>e.ticker==='069500');
+assert.equal(R.peers(kodex,funds).length,3);
+assert.equal(R.peers(funds.find(e=>e.ticker==='132030'),funds).length,0);
+assert.equal(R.peers(kodex,[{...kodex,ticker:'999999',productType:'레버리지'}]).length,0);
+assert.equal(R.peers(kodex,[{...kodex,ticker:'999999',benchmark:'다른 지수'}]).length,0);
+vm.runInContext("selected=new Set(['114260','132030','161510'])",ctx);
+assert.equal(vm.runInContext("comparePair('069500:102110')",ctx),true);
+assert.equal(ctx.location.hash,'#/compare');
+assert.equal(vm.runInContext("selected.size",ctx),2);
+assert.equal(vm.runInContext("comparePair('069500:132030')",ctx),false);
+assert.equal(vm.runInContext("comparePair('999999:102110')",ctx),false);
+for(const e of funds){
+ ctx.location.hash='#/etf/'+e.ticker;vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('가격에 영향을 주는 요인'));
+ assert.ok(elements.main.innerHTML.includes('어디까지 확인된 자료'));
+}
+ctx.location.hash='#/etf/132030';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('선물'));
+assert.ok(elements.main.innerHTML.includes('같은 기준의 다른 상품이 없습니다'));
+ctx.location.hash='#/etf/161510';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('일부 8건 확인'));
 for(const file of ['index.html','style.css','icon.svg','app.js','rules.js','data-core.js','prices.js','fundamentals.js'])assert.ok(fs.statSync('docs/'+file).size>0);
 console.log(`${cases} questionnaire combinations; missing/conflicting inputs; price drawdown; nine ETF details; routes and comparison passed.`);
