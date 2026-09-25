@@ -1,5 +1,7 @@
 # ETF Surf
 
+[웹사이트 열기](https://wjyi0615.github.io/etf-surf/) · [배포 상태](https://github.com/wjyi0615/etf-surf/actions/workflows/pages.yml)
+
 **나의 첫 ETF, 이해하고 선택하기.**
 초보 투자자가 질문에 답하고, 선정 이유가 있는 ETF 후보를 살펴보고, 최대 3개 상품을 비교하는 정적 웹사이트입니다.
 
@@ -36,7 +38,7 @@ node --check docs/rules.js
 원래 출처 URL·단위·기준일을 데이터에 유지하고 상세 화면에 표시합니다.
 가격 갱신 코드는 `scripts/update_prices.py`, 예약 작업은 `.github/workflows/update-prices.yml`입니다.
 평일 한국시간 19:23 실행하도록 설정했습니다. 예약 실행은 이 파일이 기본 브랜치에 병합된 뒤 동작합니다.
-현재 개발 브랜치의 설정만으로 예약 실행이나 공개 배포가 활성화된 것은 아닙니다.
+가격 갱신 작업이 끝나면 성공·실패 상태와 보존된 가격을 공개 사이트에 다시 배포합니다.
 수동 실행은 `python3 scripts/update_prices.py`이며 추가 패키지가 필요 없습니다.
 9개 ETF 날짜·가격·거래량과 과거 이력을 모두 검증한 뒤 가격 파일을 교체합니다.
 한 종목이라도 실패하면 기존 가격은 보존하고 `docs/update-status.js`에 실패 상태를 기록합니다.
@@ -70,5 +72,5 @@ node --check docs/rules.js
 비교 버튼은 기존 선택을 해당 두 상품으로 교체하며 화면에 이를 안내합니다.
 상품 설명은 구조에 대한 교육용 해석으로, 당일 수익률 기여도 분석이나 미래 예측이 아닙니다.
 
-GitHub Pages에서 배포할 브랜치의 `/docs` 폴더를 선택하면 됩니다. 실제 공개 주소와 배포 상태는 저장소의 Pages 설정에서 확인하세요.
+GitHub Pages의 Source를 `GitHub Actions`로 설정합니다. `.github/workflows/pages.yml`이 `main` 변경과 가격 갱신 완료 시 검증 후 `docs`만 배포합니다. Actions의 `Deploy ETF Surf`에서 수동 재배포도 가능합니다.
 개발은 `codex/` 브랜치에서 진행하며 기존 KOSPI200-ETF-LAB은 변경하지 않습니다.
