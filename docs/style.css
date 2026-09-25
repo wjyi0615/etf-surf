@@ -6,3 +6,6 @@
 .peer-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
 dd small{display:block}
 @media(max-width:600px){.peer-row{align-items:flex-start;flex-direction:column}dl>div{flex-wrap:wrap}dd{max-width:100%;overflow-wrap:anywhere}}
+
+/* Search directory keeps descriptive product links beside comparable figures. */
+.catalog-views{display:flex;gap:8px;margin-top:24px}.catalog-views button{background:white;color:var(--teal)}.catalog-views button[aria-pressed=true]{background:var(--teal);color:white}.catalog-table{background:white;border:1px solid var(--line);border-radius:12px;padding:0 16px}.catalog-table table{min-width:900px}.catalog-table tbody th{width:32%;min-width:260px}.catalog-table th small{display:block;margin-top:7px;color:var(--muted);font-weight:400}.catalog-table th p{font-size:13px;font-weight:400;margin:8px 0 0;max-width:360px}.product-name{font-weight:750;font-size:16px}.catalog-table tbody tr:hover{background:#f3f7f0}.catalog-table td{min-width:110px}.catalog-table td button{white-space:nowrap;font-size:13px}.catalog-table caption{padding:16px 0}

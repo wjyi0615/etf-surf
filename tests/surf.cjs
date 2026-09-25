@@ -114,9 +114,16 @@ assert.equal(shared[0].p.mdd,0); // Non-common intermediate observations are exc
 assert.equal(R.comparison([shifted[0],{dates:['2024-12-01','2025-01-01'],prices:[100,110]}]).length,0);
 for(const topic of ['sp500','nasdaq','usdividend','shortbond','rates']){
  ctx.location.hash='#/explore/'+topic;vm.runInContext('render(false)',ctx);
- assert.equal((elements.main.innerHTML.match(/<article class="card">/g)||[]).length,C.filterEtfs(funds,{group:topic}).length);
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,C.filterEtfs(funds,{group:topic}).length);
 }
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='489250')).target.includes('미국'));
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='153130')).target.includes('짧은'));
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='423160')).target.includes('합성'));
 console.log('Expanded catalog filters, same-index peers, listing dates and common-calendar metrics passed.');
+
+ctx.location.hash='#/explore/all';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,20);
+for(const e of funds)assert.ok(elements.main.innerHTML.includes(`href="#/etf/${e.ticker}"`));
+vm.runInContext("catalogView='returns';render(false)",ctx);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+assert.ok(elements.main.innerHTML.includes('분배금 재투자 수익률이 아니며'));
