@@ -17,3 +17,5 @@ dd small{display:block}
 
 #discovery select{width:100%;margin:8px 0 12px}
 a.button[aria-current=true],.topic-links a[aria-current=true]{background:var(--green);color:var(--ink);border-color:var(--teal);font-weight:700}
+
+.discovery-table{line-height:1.7;min-width:700px}.discovery-table tbody th{font-weight:700;width:16%}.discovery-table td:nth-child(2){width:32%}.discovery-table td:last-child{white-space:nowrap}.discovery-table tr:has([aria-current=true]){background:#edf5e6}
