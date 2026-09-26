@@ -33,7 +33,7 @@ const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(
 Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[]},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
 Object.assign(ctx.window,{addEventListener(){},scrollTo(){}});
 vm.runInContext(fs.readFileSync('docs/app.js','utf8'),ctx);
-assert.ok(elements.main.innerHTML.includes('첫 ETF'));
+assert.ok(elements.main.innerHTML.includes('무엇에 투자하는지'));
 ctx.window.ETF_UPDATE={state:'failed',attemptedAt:'2026-09-25T10:00:00Z'};
 assert.ok(vm.runInContext('notice()',ctx).includes('마지막 정상 가격'));
 assert.equal((fs.readFileSync('docs/index.html','utf8').match(/<!doctype html>/gi)||[]).length,1);
@@ -158,3 +158,12 @@ for(const e of funds){
  for(const label of ['투자 대상','영향 요인','주의할 점','자료 기준일'])assert.ok(composition.includes(label));
 }
 console.log('Name explanations and source-age boundary checks passed.');
+
+for(const key of ['korea','us','bonds','commodity']){
+ ctx.location.hash='#/targets/'+key;vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('무엇에 투자하나요?'));
+ assert.ok(elements.main.innerHTML.includes('#/explore/'+key));
+ ctx.location.hash='#/explore/'+key;vm.runInContext('render(false)',ctx);
+ if(['korea','us'].includes(key))assert.equal(vm.runInContext('region',ctx),key);
+}
+console.log('Investment target explanations and regional navigation passed.');
