@@ -145,3 +145,16 @@ for(const e of funds){
  if(h.kind==='structure')assert.ok(html.includes('실제 편입 비중표가 아닌'));
 }
 console.log('All 20 ETFs: 17 composition snapshots and 3 sourced structure descriptions passed.');
+// Source age boundaries and conditional name explanations.
+assert.match(vm.runInContext("compositionAge({asOf:'2026-01-01'},new Date('2026-06-30'))",ctx),/180일/);
+assert.doesNotMatch(vm.runInContext("compositionAge({asOf:'2026-01-01'},new Date('2026-06-29'))",ctx),/180일/);
+assert.match(vm.runInContext("compositionAge({asOf:'invalid'})",ctx),/확인 필요/);
+for(const e of funds){
+ const html=vm.runInContext(`nameGuide(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ assert.ok(html.includes('ETF 이름 풀어보기'));
+ assert.equal(html.includes('환헤지 전략'),e.name.includes('(H)'));
+ assert.equal(html.includes('계약 상대방 위험'),e.name.includes('합성'));
+ const composition=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ for(const label of ['투자 대상','영향 요인','주의할 점','자료 기준일'])assert.ok(composition.includes(label));
+}
+console.log('Name explanations and source-age boundary checks passed.');
