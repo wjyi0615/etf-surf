@@ -29,8 +29,8 @@ assert.equal(R.scenario(funds[0],{monthly:100000,months:60}),null);
 assert.ok(scenario.start<=scenario.end);
 assert.throws(()=>R.scenario(funds[0],{monthly:100,months:12}));
 assert.throws(()=>R.scenario(funds[0],{monthly:100000,months:24}));
-const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(){return null}},count:{},toast:{}};
-Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[]},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
+const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(){return null},querySelectorAll(){return []}},count:{},toast:{}};
+Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[],querySelector:()=>null},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
 Object.assign(ctx.window,{addEventListener(){},scrollTo(){}});
 vm.runInContext(fs.readFileSync('docs/app.js','utf8'),ctx);
 assert.ok(elements.main.innerHTML.includes('첫 ETF'));
@@ -124,7 +124,7 @@ console.log('Expanded catalog filters, same-index peers, listing dates and commo
 ctx.location.hash='#/explore/all';vm.runInContext('render(false)',ctx);
 assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,20);
 for(const e of funds)assert.ok(elements.main.innerHTML.includes(`href="#/etf/${e.ticker}"`));
-vm.runInContext("catalogView='returns';render(false)",ctx);
+ctx.location.hash='#/explore?view=returns';vm.runInContext("render(false)",ctx);
 assert.ok(elements.main.innerHTML.includes('1개월'));
 assert.ok(elements.main.innerHTML.includes('분배금 재투자 수익률이 아니며'));
 
@@ -179,3 +179,34 @@ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length
 ctx.location.hash='#/guide?asset=bonds&market=korea&group=sp500';
 assert.equal(vm.runInContext('discoveryState().group',ctx),'all');
 console.log('Self-directed filters, invalid combinations and exact candidate counts passed.');
+
+// URL is the source of truth for the committed catalog state.
+ctx.location.hash='#/explore?category=equity&region=us&group=sp500&query=TIGER&view=returns';
+vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,1);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+assert.ok(elements.main.innerHTML.includes('검색어 지우기'));
+ctx.location.hash='#/etf/360750';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('query=TIGER'));
+ctx.location.hash='#/explore?category=__proto__&group=constructor&region=invalid&view=invalid';
+vm.runInContext('render(false)',ctx);
+assert.equal(vm.runInContext('category',ctx),'all');
+assert.equal(vm.runInContext('group',ctx),'all');
+assert.equal(vm.runInContext('catalogView',ctx),'basic');
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,20);
+ctx.location.hash='#/guide?asset=equity&market=us&group=sp500&view=returns';
+vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+// Selection does not re-render the page and cannot exceed the existing limit.
+const beforeSelection=elements.main.innerHTML;
+vm.runInContext("selected=new Set();toggleSelection('069500');toggleSelection('102110');toggleSelection('148020');toggleSelection('152100')",ctx);
+assert.equal(vm.runInContext('selected.size',ctx),3);
+assert.equal(vm.runInContext("selected.has('152100')",ctx),false);
+assert.equal(elements.main.innerHTML,beforeSelection);
+assert.match(elements.toast.textContent,/최대 3개/);
+vm.runInContext("toggleSelection('102110')",ctx);
+assert.equal(vm.runInContext('selected.size',ctx),2);
+assert.match(elements.toast.textContent,/제외/);
+assert.ok(vm.runInContext('questionnaire()',ctx).includes('novalidate'));
+assert.ok(vm.runInContext('scenarioBox(funds)',ctx).includes('monthly-error'));
+console.log('URL filter restoration, invalid parameters, view persistence and in-place selection limit passed.');
