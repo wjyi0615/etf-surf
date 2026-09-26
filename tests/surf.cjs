@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const ctx={window:{},console,Date};vm.createContext(ctx);
+const ctx={window:{},console,Date,URLSearchParams};vm.createContext(ctx);
 for(const f of ['prices','fundamentals','data-core','rules'])vm.runInContext(fs.readFileSync(`docs/${f}.js`,'utf8'),ctx);
 const C=ctx.window.ETFCore,R=ctx.window.SurfRules,funds=C.catalog(ctx.window.ETF_DATA);
 assert.equal(funds.length,20);
@@ -166,3 +166,16 @@ for(const choice of ['soon','later','unknown']){
 ctx.location.hash='#/types/invalid';vm.runInContext('render(false)',ctx);
 assert.ok(elements.main.innerHTML.includes('아직 모르겠어요'));
 console.log('Three beginner paths and invalid-path fallback passed.');
+
+for(const asset of ['all','equity','bonds','commodity','cash'])for(const market of ['all','korea','us','global']){
+ ctx.location.hash='#/guide?asset='+asset+'&market='+market;
+ vm.runInContext('render(false)',ctx);
+ const state=vm.runInContext('discoveryState()',ctx);
+ assert.ok(state.base.every(e=>(asset==='all'||e.category===asset||(asset==='equity'&&e.category==='theme'))&&(market==='all'||e.region===market)));
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,state.base.length);
+}
+ctx.location.hash='#/guide?asset=equity&market=us&group=sp500';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,3);
+ctx.location.hash='#/guide?asset=bonds&market=korea&group=sp500';
+assert.equal(vm.runInContext('discoveryState().group',ctx),'all');
+console.log('Self-directed filters, invalid combinations and exact candidate counts passed.');
