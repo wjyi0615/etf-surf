@@ -1,0 +1,14 @@
+{
+  "profile": "product-admin",
+  "sourceRoots": ["docs"],
+  "locale": "ko-KR",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": ["Table Selection", "Select/Listbox", "Form", "Scrollbar", "Toast"],
+  "ownership": {"Select/Listbox": "native"},
+  "requiredCommands": ["unit", "prices", "syntax"],
+  "commands": {
+    "unit": "node tests/surf.cjs",
+    "prices": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
+    "syntax": "node --check docs/app.js"
+  }
+}

@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-const ctx={window:{},console,Date};vm.createContext(ctx);
+const ctx={window:{},console,Date,URLSearchParams};vm.createContext(ctx);
 for(const f of ['prices','fundamentals','data-core','rules'])vm.runInContext(fs.readFileSync(`docs/${f}.js`,'utf8'),ctx);
 const C=ctx.window.ETFCore,R=ctx.window.SurfRules,funds=C.catalog(ctx.window.ETF_DATA);
 assert.equal(funds.length,20);
@@ -29,8 +29,8 @@ assert.equal(R.scenario(funds[0],{monthly:100000,months:60}),null);
 assert.ok(scenario.start<=scenario.end);
 assert.throws(()=>R.scenario(funds[0],{monthly:100,months:12}));
 assert.throws(()=>R.scenario(funds[0],{monthly:100000,months:24}));
-const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(){return null}},count:{},toast:{}};
-Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[]},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
+const elements={main:{innerHTML:'',focus(){},addEventListener(){},querySelector(){return null},querySelectorAll(){return []}},count:{},toast:{}};
+Object.assign(ctx,{document:{getElementById:id=>elements[id]||null,querySelectorAll:()=>[],querySelector:()=>null},location:{hash:'#/'},history:{replaceState(){}},setTimeout:()=>0,clearTimeout(){}});
 Object.assign(ctx.window,{addEventListener(){},scrollTo(){}});
 vm.runInContext(fs.readFileSync('docs/app.js','utf8'),ctx);
 assert.ok(elements.main.innerHTML.includes('첫 ETF'));
@@ -114,9 +114,99 @@ assert.equal(shared[0].p.mdd,0); // Non-common intermediate observations are exc
 assert.equal(R.comparison([shifted[0],{dates:['2024-12-01','2025-01-01'],prices:[100,110]}]).length,0);
 for(const topic of ['sp500','nasdaq','usdividend','shortbond','rates']){
  ctx.location.hash='#/explore/'+topic;vm.runInContext('render(false)',ctx);
- assert.equal((elements.main.innerHTML.match(/<article class="card">/g)||[]).length,C.filterEtfs(funds,{group:topic}).length);
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,C.filterEtfs(funds,{group:topic}).length);
 }
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='489250')).target.includes('미국'));
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='153130')).target.includes('짧은'));
 assert.ok(R.productGuide(funds.find(e=>e.ticker==='423160')).target.includes('합성'));
 console.log('Expanded catalog filters, same-index peers, listing dates and common-calendar metrics passed.');
+
+ctx.location.hash='#/explore/all';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,20);
+for(const e of funds)assert.ok(elements.main.innerHTML.includes(`href="#/etf/${e.ticker}"`));
+ctx.location.hash='#/explore?view=returns';vm.runInContext("render(false)",ctx);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+assert.ok(elements.main.innerHTML.includes('분배금 재투자 수익률이 아니며'));
+
+const holdingHtml=vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx);
+assert.ok(holdingHtml.includes('2026-03-31'));
+assert.equal((holdingHtml.match(/<meter /g)||[]).length,10);
+assert.ok(vm.runInContext("composition({...funds[0],ticker:'999999'})",ctx).includes('아직 확보하지'));
+ctx.window.ETF_FUNDAMENTALS.holdings['069500'].items[0].weight=101;
+assert.ok(vm.runInContext("composition(funds.find(e=>e.ticker==='069500'))",ctx).includes('아직 확보하지'));
+
+for(const e of funds){
+ const h=ctx.window.ETF_FUNDAMENTALS.holdings[e.ticker];
+ assert.ok(h && h.asOf && h.sourceUrl.startsWith('https://'));
+ if(e.ticker==='069500')continue; // Invalid-value fixture above deliberately mutates this snapshot.
+ const html=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ assert.ok(!html.includes('아직 확보하지'));
+ assert.equal((html.match(/<meter /g)||[]).length,h.items.length);
+ if(h.kind==='structure')assert.ok(html.includes('실제 편입 비중표가 아닌'));
+}
+console.log('All 20 ETFs: 17 composition snapshots and 3 sourced structure descriptions passed.');
+// Source age boundaries and conditional name explanations.
+assert.match(vm.runInContext("compositionAge({asOf:'2026-01-01'},new Date('2026-06-30'))",ctx),/180일/);
+assert.doesNotMatch(vm.runInContext("compositionAge({asOf:'2026-01-01'},new Date('2026-06-29'))",ctx),/180일/);
+assert.match(vm.runInContext("compositionAge({asOf:'invalid'})",ctx),/확인 필요/);
+for(const e of funds){
+ const html=vm.runInContext(`nameGuide(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ assert.ok(html.includes('ETF 이름 풀어보기'));
+ assert.equal(html.includes('환헤지 전략'),e.name.includes('(H)'));
+ assert.equal(html.includes('계약 상대방 위험'),e.name.includes('합성'));
+ const composition=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ for(const label of ['투자 대상','영향 요인','주의할 점','자료 기준일'])assert.ok(composition.includes(label));
+}
+console.log('Name explanations and source-age boundary checks passed.');
+for(const choice of ['soon','later','unknown']){
+ ctx.location.hash='#/types/'+choice;vm.runInContext('render(false)',ctx);
+ for(const text of ['주식형','채권형','기대할 수 있는 점','손실 가능성'])assert.ok(elements.main.innerHTML.includes(text));
+ assert.ok(!elements.main.innerHTML.includes('data-select='));
+}
+ctx.location.hash='#/types/invalid';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('아직 모르겠어요'));
+console.log('Three beginner paths and invalid-path fallback passed.');
+
+for(const asset of ['all','equity','bonds','commodity','cash'])for(const market of ['all','korea','us','global']){
+ ctx.location.hash='#/guide?asset='+asset+'&market='+market;
+ vm.runInContext('render(false)',ctx);
+ const state=vm.runInContext('discoveryState()',ctx);
+ assert.ok(state.base.every(e=>(asset==='all'||e.category===asset||(asset==='equity'&&e.category==='theme'))&&(market==='all'||e.region===market)));
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,state.base.length);
+}
+ctx.location.hash='#/guide?asset=equity&market=us&group=sp500';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,3);
+ctx.location.hash='#/guide?asset=bonds&market=korea&group=sp500';
+assert.equal(vm.runInContext('discoveryState().group',ctx),'all');
+console.log('Self-directed filters, invalid combinations and exact candidate counts passed.');
+
+// URL is the source of truth for the committed catalog state.
+ctx.location.hash='#/explore?category=equity&region=us&group=sp500&query=TIGER&view=returns';
+vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,1);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+assert.ok(elements.main.innerHTML.includes('검색어 지우기'));
+ctx.location.hash='#/etf/360750';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('query=TIGER'));
+ctx.location.hash='#/explore?category=__proto__&group=constructor&region=invalid&view=invalid';
+vm.runInContext('render(false)',ctx);
+assert.equal(vm.runInContext('category',ctx),'all');
+assert.equal(vm.runInContext('group',ctx),'all');
+assert.equal(vm.runInContext('catalogView',ctx),'basic');
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,20);
+ctx.location.hash='#/guide?asset=equity&market=us&group=sp500&view=returns';
+vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('1개월'));
+// Selection does not re-render the page and cannot exceed the existing limit.
+const beforeSelection=elements.main.innerHTML;
+vm.runInContext("selected=new Set();toggleSelection('069500');toggleSelection('102110');toggleSelection('148020');toggleSelection('152100')",ctx);
+assert.equal(vm.runInContext('selected.size',ctx),3);
+assert.equal(vm.runInContext("selected.has('152100')",ctx),false);
+assert.equal(elements.main.innerHTML,beforeSelection);
+assert.match(elements.toast.textContent,/최대 3개/);
+vm.runInContext("toggleSelection('102110')",ctx);
+assert.equal(vm.runInContext('selected.size',ctx),2);
+assert.match(elements.toast.textContent,/제외/);
+assert.ok(vm.runInContext('questionnaire()',ctx).includes('novalidate'));
+assert.ok(vm.runInContext('scenarioBox(funds)',ctx).includes('monthly-error'));
+console.log('URL filter restoration, invalid parameters, view persistence and in-place selection limit passed.');

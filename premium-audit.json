@@ -1,0 +1,41 @@
+{
+  "findings": [
+    {
+      "category": "violation",
+      "file": "docs/app.js",
+      "line": 65,
+      "message": "Enabled literal button has no detectable action or submit behavior.",
+      "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
+      "ruleId": "affordance.actionless-button",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
+      "file": "docs/app.js",
+      "line": 87,
+      "message": "Enabled literal button has no detectable action or submit behavior.",
+      "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
+      "ruleId": "affordance.actionless-button",
+      "severity": "error"
+    },
+    {
+      "category": "violation",
+      "file": "docs/app.js",
+      "line": 121,
+      "message": "Enabled literal button has no detectable action or submit behavior.",
+      "remediation": "Connect the button to a real action, make it a submit button, or disable/remove it.",
+      "ruleId": "affordance.actionless-button",
+      "severity": "error"
+    }
+  ],
+  "mode": "strict",
+  "projectRoot": "/Users/iujung/Desktop/1.학교수업들/25-2/가사/etf-surf-ui",
+  "schemaVersion": 1,
+  "summary": {
+    "errors": 3,
+    "total": 3,
+    "unresolved": 0,
+    "violations": 3,
+    "warnings": 0
+  }
+}
