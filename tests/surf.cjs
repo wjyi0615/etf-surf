@@ -171,11 +171,28 @@ for(const asset of ['all','equity','bonds','commodity','cash'])for(const market 
  ctx.location.hash='#/guide?asset='+asset+'&market='+market;
  vm.runInContext('render(false)',ctx);
  const state=vm.runInContext('discoveryState()',ctx);
- assert.ok(state.base.every(e=>(asset==='all'||e.category===asset||(asset==='equity'&&e.category==='theme'))&&(market==='all'||e.region===market)));
- assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,state.base.length);
+ assert.ok(state.base.every(e=>(asset==='all'||e.category===asset)&&(market==='all'||e.region===market)));
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,0);
 }
 ctx.location.hash='#/guide?asset=equity&market=us&group=sp500';vm.runInContext('render(false)',ctx);
 assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,3);
 ctx.location.hash='#/guide?asset=bonds&market=korea&group=sp500';
 assert.equal(vm.runInContext('discoveryState().group',ctx),'all');
 console.log('Self-directed filters, invalid combinations and exact candidate counts passed.');
+
+for(const asset of ['equity','bonds','commodity','theme','cash']){
+ ctx.location.hash='#/guide?asset='+asset;vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('어느 시장이 궁금한가요?'));
+ assert.ok(!elements.main.innerHTML.includes('discovery-table'));
+ ctx.location.hash='#/guide?asset='+asset+'&market=all';vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('discovery-table'));
+ assert.ok(!elements.main.innerHTML.includes('class="product-name"'));
+ const options=vm.runInContext('discoveryState().options',ctx);
+ for(const key of Object.keys(options)){
+  ctx.location.hash='#/guide?asset='+asset+'&market=all&group='+key;vm.runInContext('render(false)',ctx);
+  assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,funds.filter(e=>e.category===asset&&e.group===key).length);
+ }
+}
+ctx.location.hash='#/';vm.runInContext('render(false)',ctx);
+for(const key of ['equity','bonds','commodity','theme','cash'])assert.ok(elements.main.innerHTML.includes('#/guide?asset='+key));
+console.log('Five categories, progressive disclosure and home entry links passed.');
