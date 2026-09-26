@@ -20,13 +20,13 @@ a.button[aria-current=true],.topic-links a[aria-current=true]{background:var(--g
 
 /* A distinct white surface keeps the comparison separate from the page. */
 .discovery-table-wrap{background:#fff;border:1px solid #b7c9c3;border-radius:14px;box-shadow:0 4px 16px #173d4409}
-.discovery-table{line-height:1.75;min-width:740px;background:#fff}
+.discovery-table{line-height:1.7;min-width:580px;background:#fff;table-layout:fixed}
 .discovery-table caption{background:#fff;padding:20px 24px;font-size:16px}
-.discovery-table thead{background:#164b53;color:#fff}
+.discovery-table thead{background:#e8efec;color:var(--ink)}
 .discovery-table thead th{font-size:13px;letter-spacing:.2px;padding:14px 24px;border-bottom:0}
-.discovery-table tbody th,.discovery-table td{padding:24px;border-bottom:1px solid #d5e1dc}
-.discovery-table tbody th{font-weight:750;font-size:16px;width:18%;border-right:1px solid #e4ebe7}
-.discovery-table td:nth-child(2){width:31%}
+.discovery-table tbody th,.discovery-table td{padding:20px 24px;border-bottom:1px solid #d5e1dc}
+.discovery-table tbody th{font-weight:750;font-size:15px;width:23%;border-right:0}
+.discovery-table thead th:last-child{width:150px}.discovery-summary{margin:0;max-width:58ch;word-break:keep-all;overflow-wrap:anywhere}
 .discovery-table td:last-child{white-space:nowrap;vertical-align:middle}
 .discovery-table tbody tr:nth-child(even){background:#f8faf9}
 .discovery-table tbody tr:hover{background:#f0f5f2}
@@ -35,7 +35,9 @@ a.button[aria-current=true],.topic-links a[aria-current=true]{background:var(--g
 .discovery-table tbody tr:last-child>*{border-bottom:0}
 .discovery-table .button.secondary{background:#fff;border-color:#9ab4ab;color:var(--teal)}
 .discovery-table .button[aria-current=true]{background:var(--teal);border-color:var(--teal);color:#fff}
-.discovery-table details{font-size:13px;margin-top:12px}
+.discovery-table details{font-size:14px;margin-top:8px}.discovery-table details[open]{background:#f2f6f3;border-radius:8px;padding:14px;margin-top:12px}.discovery-table details p{margin:12px 0 0;max-width:58ch}
 .discovery-table summary{color:var(--teal)}
 #discovery{border-color:#b7c9c3;box-shadow:0 4px 16px #173d4409}
 @media(max-width:760px){.discovery-table caption{padding:16px}.discovery-table thead th,.discovery-table tbody th,.discovery-table td{padding:16px}}
+
+#discovery legend{font-size:18px}#discovery label{display:block;font-size:13px;color:var(--muted)}#discovery .actions{border-top:1px solid var(--line);padding-top:20px}#discovery+.section{margin-top:48px}
