@@ -158,3 +158,11 @@ for(const e of funds){
  for(const label of ['투자 대상','영향 요인','주의할 점','자료 기준일'])assert.ok(composition.includes(label));
 }
 console.log('Name explanations and source-age boundary checks passed.');
+for(const choice of ['soon','later','unknown']){
+ ctx.location.hash='#/types/'+choice;vm.runInContext('render(false)',ctx);
+ for(const text of ['주식형','채권형','기대할 수 있는 점','손실 가능성'])assert.ok(elements.main.innerHTML.includes(text));
+ assert.ok(!elements.main.innerHTML.includes('data-select='));
+}
+ctx.location.hash='#/types/invalid';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('아직 모르겠어요'));
+console.log('Three beginner paths and invalid-path fallback passed.');
