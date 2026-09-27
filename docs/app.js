@@ -29,7 +29,7 @@ function updateNotice(){const s=window.ETF_UPDATE;if(!s||s.state==='not_run')ret
 function notice(){
  if(error)return `<div class="notice warning" role="alert"><strong>${error}</strong><div class="actions"><button type="button" data-retry>다시 불러오기</button><a href="#/learn">ETF 기초 배우기 →</a></div></div>`;
  const stale=Date.now()-Date.parse(funds[0]?.asOf)>7*864e5,failed=window.ETF_UPDATE?.state==='failed';
- return `<details class="data-status ${stale||failed?'warning':''}"><summary>가격 ${esc(funds[0]?.asOf||'미확보')} 기준 · ${failed?'최근 갱신 실패 · 마지막 정상 자료':stale?'7일 이상 지난 자료':'저장된 자료'}<span>기준일·갱신 정보</span></summary><p>실시간 시세가 아닙니다. 기본 정보의 기준일은 항목마다 다릅니다.<br>${updateNotice()}</p></details>`;
+ return `<details class="data-status ${stale||failed?'warning':''}"><summary>가격 ${esc(funds[0]?.asOf||'미확보')} 기준 · ${failed?'최근 갱신 실패 · 마지막 정상 자료':stale?'7일 이상 지난 자료':'저장된 자료'}<span>기준일·갱신 정보</span></summary><p>실시간 시세가 아닙니다. 기본 정보의 기준일은 항목마다 다릅니다.<br>${updateNotice()}</p><a href="#/data">상품별 자료 갱신 현황 →</a></details>`;
 }
 function fundamental(e,key){const r=e.metadata[key];if(!r)return '미확보';const v=key==='aum'?F.number(Math.round(r.value/1e8))+'억원':key==='expenseRatio'?'연 '+(r.value*100).toFixed(4)+'%':esc(r.value);return `${v}<small>${r.asOf?esc(r.asOf)+' 자료':'자료 기준일 미표기'}${r.asOf&&Date.now()-Date.parse(r.asOf)>31*864e5?' · 과거 자료':''}</small><small><a href="${url(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">공식 출처 ↗</a> · 확인 ${esc(r.checkedAt)}</small>`}
 function button(e){return `<button data-select="${e.ticker}" aria-pressed="${selected.has(e.ticker)}">${selected.has(e.ticker)?'비교에서 제외':'비교에 담기'}</button>`}
