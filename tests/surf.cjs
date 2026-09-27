@@ -164,7 +164,7 @@ for(const choice of ['soon','later','unknown']){
  assert.ok(!elements.main.innerHTML.includes('data-select='));
 }
 ctx.location.hash='#/types/invalid';vm.runInContext('render(false)',ctx);
-assert.ok(elements.main.innerHTML.includes('아직 모르겠어요'));
+assert.ok(elements.main.innerHTML.includes('관심 있는 주제'));
 console.log('Three beginner paths and invalid-path fallback passed.');
 
 for(const asset of ['all','equity','bonds','commodity','cash'])for(const market of ['all','korea','us','global']){
@@ -210,3 +210,28 @@ assert.match(elements.toast.textContent,/제외/);
 assert.ok(vm.runInContext('questionnaire()',ctx).includes('novalidate'));
 assert.ok(vm.runInContext('scenarioBox(funds)',ctx).includes('monthly-error'));
 console.log('URL filter restoration, invalid parameters, view persistence and in-place selection limit passed.');
+
+// Topic entrances are separate from the unchanged source taxonomy.
+for(const [topic,count,keys] of [
+ ['equity',9,['kospi','sp500','nasdaq']],['bonds',3,['government','shortbond']],
+ ['commodity',1,['gold']],['theme',1,['semiconductor']],
+ ['dividend',4,['krdividend','usdividend']],['cash',2,['cd','kofr']]
+]){
+ ctx.location.hash='#/guide?topic='+topic;vm.runInContext('render(false)',ctx);
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,count);
+ assert.deepEqual(Array.from(vm.runInContext('Object.keys(discoveryState().options)',ctx)).sort(),keys.sort());
+ assert.ok(!elements.main.innerHTML.includes('discovery-table'));
+}
+for(const [group,ticker] of [['cd','459580'],['kofr','423160']]){
+ ctx.location.hash='#/guide?topic=cash&group='+group;vm.runInContext('render(false)',ctx);
+ assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,1);
+ assert.ok(elements.main.innerHTML.includes('#/etf/'+ticker));
+ assert.ok(elements.main.innerHTML.includes('선택됨'));
+ ctx.location.hash='#/etf/'+ticker;vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('topic=cash'));
+}
+ctx.location.hash='#/guide?topic=bonds&market=us';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('이 조건에 맞는 등록 상품이 없어요'));
+ctx.location.hash='#/';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="topic-card"/g)||[]).length,6);
+console.log('Six topic entrances, actual subtypes, rates split, empty state and detail return passed.');

@@ -198,3 +198,21 @@ input[type=number] { width: 100%; margin-block: 8px; }
 }
 @media(prefers-reduced-motion:reduce) { button, .button { transition: none; } }
 @media(forced-colors:active) { * { scrollbar-color: auto; } button[aria-pressed=true], nav a[aria-current=page] { outline: 2px solid Highlight; } }
+/* Topic entrances retain the catalog taxonomy and the existing wave palette. */
+.topic-grid,.subtype-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.topic-card,.subtype-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-panel);padding:26px;min-width:0}
+.topic-card{display:flex;flex-direction:column;text-decoration:none;color:var(--ink)}
+.topic-card h3,.subtype-card h3{margin:0;font-size:21px}
+.topic-card p,.subtype-card>p{color:var(--muted);line-height:1.7;font-size:15px;word-break:keep-all;overflow-wrap:anywhere}
+.topic-card span{margin-top:auto;padding-top:18px;font-weight:700}
+.topic-card:hover{border-color:var(--teal)}
+.topic-filter{margin-top:32px;display:grid;grid-template-columns:1fr 1.5fr;gap:32px}
+.topic-filter h2{margin:0 0 12px}.topic-filter .eyebrow{margin-top:0}
+.subtype-card{display:flex;flex-direction:column;align-items:stretch}
+.subtype-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px}
+.subtype-card.is-selected{border:2px solid var(--teal);padding:25px}
+.selected-label{color:var(--teal);font-weight:700;font-size:13px;white-space:nowrap}
+.subtype-card details{margin:8px 0 24px}.subtype-card>.button{margin-top:auto;align-self:flex-start}
+@media(max-width:1000px){.topic-grid,.subtype-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topic-filter{grid-template-columns:1fr}}
+@media(max-width:600px){.topic-grid,.subtype-grid{grid-template-columns:1fr}.topic-card,.subtype-card{padding:22px}.subtype-card.is-selected{padding:21px}.topic-filter .form-grid{grid-template-columns:1fr}}

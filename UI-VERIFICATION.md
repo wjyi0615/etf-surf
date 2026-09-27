@@ -1,5 +1,14 @@
 # ETF Surf UI verification
 
+## Topic discovery update — 2026-09-27
+
+- Base: origin/main `18aeeb1`, local branch `codex/topic-discovery`; no merge or deployment.
+- Home: six topic links, verified 1280px three columns, 820px two columns, 390px one column. Tablet/mobile document has no horizontal overflow.
+- Guide: home selection is retained; stock has nine products and three subtypes; dividend has four products; CD/KOFR each resolve to one existing product. Basic/returns switching retains the CD product after fixing the shared view handler's subtype predicate.
+- Browser: reload restores committed subtype; detail return and browser back/forward restore guide conditions. Open risk disclosure and unapplied market input survive comparison selection (observed open=1, market=us, selected=1). Keyboard Enter opens the home topic and Tab gives the market select a visible solid focus outline.
+- Existing JS regression suite and new topic/count/legacy-link/empty/detail-return cases pass. Python's five update tests pass; JS syntax and diff whitespace checks pass.
+- Premium strict audit still reports the same three pre-existing delegated-button false positives; this is not a clean audit. Updated raw report retained. No raw data, recommendation rules or performance calculations changed.
+
 Verified locally on 2026-09-26. No production deployment was performed.
 
 ## Automated checks

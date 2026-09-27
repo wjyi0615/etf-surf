@@ -6,6 +6,19 @@ let lastCatalog='#/explore',composing=false;
 let funds=[],error='',answers={},selected=new Set(),category='all',query='',group='all',region='all',catalogView='basic';
 try{funds=C.catalog(window.ETF_DATA)}catch(e){error='가격 자료를 읽지 못했어요. 학습 콘텐츠는 계속 이용할 수 있습니다.';}
 const categories={equity:'주식',bonds:'채권',commodity:'금·원자재',theme:'테마·산업',cash:'금리형'};
+// Discovery topics are entrances, not changes to the underlying catalog taxonomy.
+const topics={
+ equity:{title:'주식·대표지수',description:'국내·미국의 여러 기업에 폭넓게 투자해요.',groups:['kospi','sp500','nasdaq']},
+ bonds:{title:'채권',description:'정부·기업의 채권과 금리의 관계를 알아봐요.',groups:['government','shortbond']},
+ commodity:{title:'금·원자재',description:'원자재 가격과 현물·선물의 차이를 살펴봐요.',groups:['gold']},
+ theme:{title:'테마·산업',description:'반도체처럼 특정 산업에 집중하는 투자를 알아봐요.',groups:['semiconductor']},
+ dividend:{title:'배당',description:'배당 관련 기준으로 고른 기업과 분배금을 살펴봐요.',groups:['krdividend','usdividend']},
+ cash:{title:'금리형',description:'CD·KOFR 같은 단기 금리를 따르는 상품을 알아봐요.',groups:['rates']}
+};
+const markets={korea:'국내',us:'미국',global:'글로벌'};
+function topicFunds(topic){return funds.filter(e=>!Object.hasOwn(topics,topic)||topics[topic].groups.includes(e.group));}
+function subtype(e){return e.group==='rates'?(e.ticker==='459580'?'cd':e.ticker==='423160'?'kofr':e.group):e.group;}
+function topicCards(){return `<section class="section"><div class="section-head"><h2>어떤 투자 주제가 궁금한가요?</h2><a href="#/explore">전체 보기 →</a></div><p class="muted">관심 있는 주제부터 ETF를 살펴보세요.</p><div class="topic-grid">${Object.entries(topics).map(([key,t])=>`<a class="topic-card" href="#/guide?topic=${key}"><h3>${t.title}</h3><p>${t.description}</p><span>살펴보기 →</span></a>`).join('')}</div><p class="muted"><small>탐색을 위한 주제 구분입니다. 배당·테마 ETF도 주식에 투자할 수 있어요.</small></p></section>`;}
 const groups={kospi:'국내 대표지수',sp500:'미국 S&P500',nasdaq:'미국 나스닥100',krdividend:'국내 배당',usdividend:'미국 배당',government:'국내 국고채',shortbond:'단기채권',rates:'CD·KOFR 금리',gold:'금 선물',semiconductor:'반도체'};
 const groupNotes={sp500:'같은 S&P500이라도 비용과 분배 정책이 달라요. 가격 차트는 분배금 재투자 성과가 아니에요.',nasdaq:'S&P500과 구성종목·업종 비중이 달라요. 미국 시장에 관심이 있다는 이유만으로 자동 후보에 포함하지 않아요.',shortbond:'단기채도 원금 보장 상품은 아니에요. 서로 다른 채권 지수를 따를 수 있어요.',rates:'CD와 KOFR는 서로 다른 금리예요. 합성 ETF는 예금이 아니며 거래상대방 위험이 있어요.',usdividend:'미국 배당주에 투자해요. 분배금뿐 아니라 가격·환율 변화도 함께 봐야 해요.'};
 const questions=[['goal','어떤 것을 먼저 알아보고 싶나요?',[['growth','자산을 꾸준히 키우는 투자'],['income','분배금을 받는 투자'],['learn','아직 몰라요 · 시장부터 이해하기']]],['horizon','이 돈을 언제 사용할 예정인가요?',[['short','1년 이내'],['medium','1년 이후 ~ 3년'],['long','3년보다 나중에']]],['risk','투자금이 줄어들 수 있다는 점은 어떤가요?',[['none','원금 손실은 받아들이기 어려워요'],['cautious','손실 가능성은 알지만 변동이 부담돼요'],['accept','큰 하락도 가능하다는 점을 이해해요']]],['market','어느 시장이 궁금한가요?',[['any','아직 정하지 않았어요'],['korea','국내 시장'],['us','미국 시장']]]];
@@ -22,24 +35,34 @@ function fundamental(e,key){const r=e.metadata[key];if(!r)return '미확보';con
 function button(e){return `<button data-select="${e.ticker}" aria-pressed="${selected.has(e.ticker)}">${selected.has(e.ticker)?'비교에서 제외':'비교에 담기'}</button>`}
 function bar(){return `<div class="compare-bar ${selected.size?'has-selection':''}" role="region" aria-label="비교 목록"><div><strong>${selected.size} / 3 선택</strong><span>${selected.size?funds.filter(e=>selected.has(e.ticker)).map(e=>esc(e.name)).join(' · '):'함께 살펴볼 ETF를 최대 3개 선택하세요.'}</span></div>${selected.size?'<a href="#/compare">선택한 ETF 비교 →</a>':'<span class="selection-help">목록의 비교 항목을 선택하세요</span>'}</div>`;}
 function card(e){const x=R.explanation(e);return `<article class="card"><span class="badge">${categories[e.category]} · ${e.region==='us'?'미국':e.region==='global'?'글로벌':'국내'}</span><h3><a href="#/etf/${e.ticker}">${esc(e.name)}</a></h3><small>${e.ticker} · ${esc(e.issuer)}</small><p>${esc(e.description)}</p><details><summary>왜 살펴볼까요?</summary><p><b>선정 이유</b> · ${esc(x.why)}</p><p class="risk"><b>주요 위험</b> · ${esc(x.risk)}</p><p><b>확인할 지표</b> · ${esc(x.check)}</p></details><small>추종지수 · ${esc(e.benchmark)}</small><div class="actions">${button(e)}<a href="#/etf/${e.ticker}">자세히 →</a></div></article>`}
-function home(){return `<section class="hero"><div><p class="eyebrow">UNDERSTAND FIRST. SURF NEXT.</p><h1>첫 ETF,<br>나만의 방향을<br>찾아보세요.</h1><p class="muted">수익률 숫자보다, 무엇에 투자하는지부터.<br>관심 있는 투자 대상과 방식을 고르고<br>선택의 이유를 차근차근 이해해요.</p><div class="actions"><a class="button" href="#/guide">이해하며 나의 ETF 찾기 ↗</a><a class="button secondary" href="#/explore">먼저 둘러보기</a></div><p><small>로그인 없이 · 답변은 서버에 저장하지 않아요</small></p></div><div class="ocean" aria-hidden="true"><svg viewBox="0 0 480 400" preserveAspectRatio="none"><circle cx="354" cy="78" r="39" fill="#f1d39a"/><path d="M0 180 Q120 80 240 180 T480 180 V400 H0Z" fill="#96bcb7"/><path d="M0 270 Q120 160 240 270 T480 270 V400 H0Z" fill="#4f8a89"/><path d="M0 335 Q120 230 240 335 T480 335 V400 H0Z" fill="#164b53"/></svg><div class="ticket"><span class="eyebrow">MY FIRST ETF</span><strong>이해하고,<br>비교하고,<br>선택하기.</strong><p>나의 속도로 시작하는 투자</p></div></div></section><div class="steps"><div><b>01 / FIND</b><h3>나의 방향 찾기</h3><p>투자 목적과 기간을 돌아봐요.</p></div><div><b>02 / COMPARE</b><h3>차이를 이해하기</h3><p>비용과 위험을 함께 비교해요.</p></div><div><b>03 / LEARN</b><h3>한 걸음 배우기</h3><p>궁금한 용어를 바로 알아봐요.</p></div></div><section class="section"><div class="section-head"><h2>어떤 바다를 살펴볼까요?</h2><a href="#/explore">전체 보기 →</a></div><div class="grid">${Object.entries(categories).map(([k,v])=>`<a class="card" href="#/explore/${k}"><span class="eyebrow">${k.toUpperCase()}</span><h3>${v}</h3><p>${{equity:'여러 기업의 성장에 함께하는 투자',bonds:'금리와 채권 가격의 관계 이해하기',commodity:'현물과 선물의 차이부터 알아보기',theme:'한 산업에 집중할 때의 기회와 위험',cash:'CD·KOFR 금리와 합성 구조 알아보기'}[k]}</p></a>`).join('')}</div></section>`}
+function home(){return `<section class="hero"><div><p class="eyebrow">UNDERSTAND FIRST. SURF NEXT.</p><h1>첫 ETF,<br>나만의 방향을<br>찾아보세요.</h1><p class="muted">수익률 숫자보다, 무엇에 투자하는지부터.<br>관심 있는 투자 대상과 방식을 고르고<br>선택의 이유를 차근차근 이해해요.</p><div class="actions"><a class="button" href="#/guide">이해하며 나의 ETF 찾기 ↗</a><a class="button secondary" href="#/explore">먼저 둘러보기</a></div><p><small>로그인 없이 · 답변은 서버에 저장하지 않아요</small></p></div><div class="ocean" aria-hidden="true"><svg viewBox="0 0 480 400" preserveAspectRatio="none"><circle cx="354" cy="78" r="39" fill="#f1d39a"/><path d="M0 180 Q120 80 240 180 T480 180 V400 H0Z" fill="#96bcb7"/><path d="M0 270 Q120 160 240 270 T480 270 V400 H0Z" fill="#4f8a89"/><path d="M0 335 Q120 230 240 335 T480 335 V400 H0Z" fill="#164b53"/></svg><div class="ticket"><span class="eyebrow">MY FIRST ETF</span><strong>이해하고,<br>비교하고,<br>선택하기.</strong><p>나의 속도로 시작하는 투자</p></div></div></section><div class="steps"><div><b>01 / FIND</b><h3>나의 방향 찾기</h3><p>투자 목적과 기간을 돌아봐요.</p></div><div><b>02 / COMPARE</b><h3>차이를 이해하기</h3><p>비용과 위험을 함께 비교해요.</p></div><div><b>03 / LEARN</b><h3>한 걸음 배우기</h3><p>궁금한 용어를 바로 알아봐요.</p></div></div>${topicCards()}`}
 // URL-backed choices survive refresh and browser back without storing a profile.
 function discoveryState(){
  const params=new URLSearchParams((location.hash||'').split('?')[1]||'');
- const asset=['equity','bonds','commodity','cash'].includes(params.get('asset'))?params.get('asset'):'all';
- const market=['korea','us','global'].includes(params.get('market'))?params.get('market'):'all';
- const base=funds.filter(e=>(asset==='all'||e.category===asset||(asset==='equity'&&e.category==='theme'))&&(market==='all'||e.region===market));
- const options=Object.fromEntries(Object.entries(groups).filter(([key])=>base.some(e=>e.group===key)));
+ const topic=Object.hasOwn(topics,params.get('topic'))?params.get('topic'):'all';
+ const asset=['equity','bonds','commodity','theme','cash'].includes(params.get('asset'))?params.get('asset'):'all';
+ const market=Object.hasOwn(markets,params.get('market'))?params.get('market'):'all';
+ // Old asset/group URLs keep their original meaning, including dividend under equity.
+ const pool=topicFunds(topic).filter(e=>topic!=='all'||asset==='all'||e.category===asset||(asset==='equity'&&e.category==='theme'));
+ const base=pool.filter(e=>market==='all'||e.region===market);
+ const names={...groups,government:'국고채',shortbond:'단기채',sp500:'S&P500',nasdaq:'나스닥100',cd:'CD',kofr:'KOFR'};
+ const options=Object.fromEntries(base.map(e=>[subtype(e),names[subtype(e)]]));
  const chosen=params.get('group');
- return {asset,market,group:Object.hasOwn(options,chosen)?chosen:'all',options,base};
+ return {topic,asset,market,group:Object.hasOwn(options,chosen)?chosen:chosen==='rates'&&base.some(e=>e.group==='rates')?'rates':'all',options,base,pool};
 }
 function guide(){
- const d=discoveryState(),list=d.base.filter(e=>d.group==='all'||e.group===d.group);
- const assets={equity:'기업의 주식',bonds:'채권',commodity:'금·원자재',cash:'단기 금리'};
- const labels=[assets[d.asset]||'투자 대상 전체',{korea:'국내',us:'미국',global:'글로벌'}[d.market]||'시장 전체',groups[d.group]||'방식 전체'];
- return heading('FIND YOUR ETF','이해하면서, 직접 골라보세요','궁금한 대상부터 선택하세요. 정하지 않은 조건은 전체로 남겨두고 언제든 바꿀 수 있어요.')+(error?notice():'')+`<form novalidate id="discovery" class="panel"><div class="form-grid"><fieldset><legend>1. 어떤 투자 대상이 궁금한가요?</legend>${filterSelect('asset','투자 대상',assets,d.asset)}<details><summary>아직 모르겠어요 · 차이 먼저 보기</summary><p>주식은 기업의 성장과 주가, 채권은 이자와 금리·신용도, 원자재는 현물·선물 구조를 살펴봐요. 단기 금리형도 예금과 다릅니다. 모두 손실 가능성이 있어요.</p><p>하나를 고르지 않아도 전체 상품을 살펴볼 수 있어요.</p></details></fieldset><fieldset><legend>2. 어느 시장을 살펴볼까요?</legend>${filterSelect('market','투자 대상 시장',{korea:'국내',us:'미국',global:'글로벌'},d.market)}<small>모두 국내 상장 상품입니다. 이 선택은 거래소가 아닌 투자 대상의 지역이에요.</small></fieldset></div><div class="actions"><button type="submit">선택한 대상으로 좁히기 →</button><a href="#/guide">선택 초기화</a></div></form><section class="section"><h2>투자 방식 비교</h2><p class="muted">한 줄 소개로 비교하고, 궁금한 방식의 구조와 위험을 펼쳐보세요.</p><div class="topic-links"><a href="${discoveryLink(d,'all')}" ${d.group==='all'?'aria-current="true"':''}>방식 전체</a></div><div class="table-wrap discovery-table-wrap" tabindex="0" role="region" aria-label="투자 방식 비교표 · 좁은 화면에서는 가로 스크롤"><table class="discovery-table"><caption>투자 방식별 대상과 주의점</caption><thead><tr><th scope="col">투자 방식</th><th scope="col">투자 대상과 특징</th><th scope="col">선택</th></tr></thead><tbody>${Object.entries(d.options).map(([key,title])=>{const e=d.base.find(e=>e.group===key),g=R.productGuide(e);return `<tr><th scope="row">${esc(title)}</th><td><p class="discovery-summary">${esc(e.description)}</p><details><summary>투자 구조·위험 자세히 보기</summary><p><b>투자 대상</b><br>${esc(g.target)}</p><p><b>영향 요인</b><br>${esc(g.drivers)}</p><p><b>확인할 점</b><br>${esc(g.check)}</p></details></td><td><a class="button secondary" href="${discoveryLink(d,key)}" ${d.group===key?'aria-current="true"':''}>${d.group===key?'선택됨':'이 방식 보기'}</a></td></tr>`;}).join('')}</tbody></table></div></section><section class="section"><h2>내가 고른 조건의 ETF ${list.length}개</h2><p class="notice">${labels.map(esc).join(' · ')}<br>선택한 조건에 일치하는 등록 상품 전체입니다. 추천 점수나 우수 상품 순위가 아닙니다.</p>${bar()}${list.length?catalogTable(list):'<p>등록된 상품 중 이 조건에 맞는 상품이 없어요. 위에서 시장이나 투자 대상을 바꿔보세요.</p>'}<p class="muted">상품명을 누르면 실제 구성과 자료 기준일을 볼 수 있어요. 비교할 상품은 직접 선택하세요.</p></section>`;
+ const d=discoveryState(),list=d.base.filter(e=>d.group==='all'||subtype(e)===d.group||e.group===d.group);
+ const title=topics[d.topic]?.title||categories[d.asset]||'모든 주제';
+ const availableMarkets=Object.fromEntries(Object.entries(markets).filter(([key])=>d.pool.some(e=>e.region===key)));
+ const labels=[title,markets[d.market]||'시장 전체',d.options[d.group]||groups[d.group]||'세부 유형 전체'];
+ return heading('FIND YOUR ETF','이해하면서, 직접 골라보세요','주제를 고르고, 구조와 위험을 읽으며 관심 있는 ETF를 찾아보세요.')+notice()+`
+ <section class="panel topic-filter"><div><p class="eyebrow">현재 살펴보는 주제</p><h2>${esc(title)}</h2><p class="muted">${esc(topics[d.topic]?.description||'정하지 않은 조건은 전체로 두어도 괜찮아요.')}</p></div>
+ <form novalidate id="discovery"><div class="form-grid">${filterSelect('topic','관심 있는 주제',Object.fromEntries(Object.entries(topics).map(([k,t])=>[k,t.title])),d.topic)}${filterSelect('market','투자 대상 시장',availableMarkets,d.market)}</div><small>모두 국내 상장 ETF예요. 시장은 거래소가 아닌 투자 대상의 지역입니다.</small><div class="actions"><button type="submit">선택한 조건 적용</button><a href="#/guide">조건 초기화</a></div></form></section>
+ <section class="section"><div class="section-head"><h2>${esc(title)}${d.topic==='all'?'의 투자 방식':'에서 무엇을 살펴볼까요?'}</h2><a href="${discoveryLink(d,'all')}" ${d.group==='all'?'aria-current="true"':''}>세부 유형 전체 보기</a></div><p class="muted">한 줄 소개부터 읽고, 궁금한 구조와 위험을 펼쳐보세요. 등록된 상품이 있는 유형만 표시합니다.</p>
+ <div class="subtype-grid">${Object.entries(d.options).map(([key,name])=>{const e=d.base.find(e=>subtype(e)===key),g=R.productGuide(e),active=d.group===key;return `<article class="subtype-card ${active?'is-selected':''}"><div class="subtype-heading"><h3>${esc(name)}</h3>${active?'<span class="selected-label">선택됨</span>':''}</div><p>${esc(e.description)}</p><details><summary>구조·위험 펼쳐보기</summary><p><b>투자 대상</b><br>${esc(g.target)}</p><p><b>영향 요인</b><br>${esc(g.drivers)}</p><p><b>확인할 점</b><br>${esc(g.check)}</p></details><a class="button secondary" href="${discoveryLink(d,key)}" ${active?'aria-current="true"':''}>해당 ETF 보기 →<span class="sr-only"> ${esc(name)}</span></a></article>`;}).join('')}</div></section>
+ <section class="section" aria-labelledby="matching-etfs"><h2 id="matching-etfs">일치하는 ETF ${list.length}개</h2><p class="notice">${labels.map(esc).join(' · ')}<br>선택한 조건에 일치하는 등록 상품 전체입니다. 추천 점수나 우수 상품 순위가 아닙니다.</p>${bar()}${list.length?catalogTable(list):error?'':'<div class="empty"><h3>이 조건에 맞는 등록 상품이 없어요</h3><p>시장 조건을 풀거나 다른 주제를 살펴보세요.</p><a href="'+discoveryLink({...d,market:'all'},'all')+'">시장 전체로 보기 →</a></div>'}<p class="muted">상품명을 누르면 실제 구성과 자료 기준일을 볼 수 있어요. 비교할 상품은 직접 선택하세요.</p></section>`;
 }
-function discoveryLink(d,group){return '#/guide?'+new URLSearchParams({asset:d.asset,market:d.market,group,view:catalogView}).toString();}
+function discoveryLink(d,group){return '#/guide?'+new URLSearchParams({...(d.topic&&d.topic!=='all'?{topic:d.topic}:{asset:d.asset||'all'}),market:d.market||'all',group,view:catalogView}).toString();}
 function types(){
  const key=(location.hash||'').split('/')[2];
  const messages={soon:'곧 쓸 돈이라면 가격 하락으로 필요한 금액이 부족해질 수 있어요. 지금은 매수 후보를 고르기보다 투자 구조를 알아봐요.',later:'오래 투자할 수 있어도 손실 가능성은 남아요. 무엇을 담는 상품인지부터 살펴봐요.',unknown:'아직 사용 시점을 몰라도 괜찮아요. 아래 설명을 읽고 투자 대상을 이해하는 것부터 시작해요.'};
@@ -185,7 +208,7 @@ main.addEventListener('click',event=>{
   const params=new URLSearchParams((location.hash||'').split('?')[1]||'');params.set('view',catalogView);
   history.replaceState(null,'',(location.hash||'#/').split('?')[0]+'?'+params);
   lastCatalog=location.hash;
-  const list=location.hash.startsWith('#/guide')?(()=>{const d=discoveryState();return d.base.filter(e=>d.group==='all'||e.group===d.group);})():C.filterEtfs(funds,{category,query,group,region});
+  const list=location.hash.startsWith('#/guide')?(()=>{const d=discoveryState();return d.base.filter(e=>d.group==='all'||subtype(e)===d.group||e.group===d.group);})():C.filterEtfs(funds,{category,query,group,region});
   view.closest('.catalog').outerHTML=catalogTable(list);
   main.querySelector(`[data-view="${catalogView}"]`)?.focus({preventScroll:true});return;
  }
@@ -193,7 +216,14 @@ main.addEventListener('click',event=>{
  const peer=event.target.closest('[data-peer]');if(peer){comparePair(peer.dataset.peer);return;}
  const control=event.target.closest('button[data-select]');if(control)toggleSelection(control.dataset.select);
 });
-main.addEventListener('change',event=>{if(event.target.matches('input[data-select]'))toggleSelection(event.target.dataset.select);});
+main.addEventListener('change',event=>{
+ if(event.target.matches('input[data-select]'))toggleSelection(event.target.dataset.select);
+ if(event.target.closest('#discovery')&&event.target.name==='topic'){
+  const select=event.target.form.elements.market;
+  const available=Object.entries(markets).filter(([key])=>topicFunds(event.target.value).some(e=>e.region===key));
+  select.innerHTML='<option value="all">전체</option>'+available.map(([key,label])=>`<option value="${key}">${label}</option>`).join('');
+ }
+});
 main.addEventListener('input',event=>{
  if(event.target.name==='query')main.querySelector('[data-clear-search]').hidden=!event.target.value;
  if(event.target.closest('#guide')){
@@ -230,7 +260,7 @@ main.addEventListener('submit',event=>{
  event.preventDefault();if(composing)return;
  const form=event.target,data=Object.fromEntries(new FormData(form));
  if(!validateForm(form,data))return;
- if(form.id==='discovery'){location.hash=discoveryLink({asset:data.asset,market:data.market},'all');}
+ if(form.id==='discovery'){location.hash=discoveryLink({topic:data.topic,market:data.market},'all');}
  else if(form.id==='guide'){try{R.recommend(data,funds);answers=data;location.hash='#/result';}catch(e){notify(e.message);}}
  else if(form.id==='filters'){
   history.pushState(null,'',catalogLink(data));render(false);
