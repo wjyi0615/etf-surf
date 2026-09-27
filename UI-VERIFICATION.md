@@ -1,5 +1,10 @@
 # ETF Surf UI verification
 
+## Peer differences — 2026-09-27
+
+- Branch `codex/peer-differences`: same-index pairs reuse peers(), fundamental(), and official composition snapshots. No policy inferred from names or payment events. Unverified hedge/distribution/additional-cost fields explicitly unavailable.
+- JS regression and all peer-pair rendering checks pass; syntax and whitespace checks pass. Desktop 1280px KODEX/TIGER 200 table inspected. Mobile 390px document has no horizontal overflow; the table owns horizontal scrolling. No data changes or deployment.
+
 ## Detail reading flow — 2026-09-27
 
 - `codex/detail-reading-flow`: all 20 existing products use visible target → drivers → risk, followed by composition evidence. Existing text, sources and dates retained; repeated composition explanation removed.

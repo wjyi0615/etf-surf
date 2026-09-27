@@ -222,3 +222,4 @@ input[type=number] { width: 100%; margin-block: 8px; }
 .reading-step{color:var(--teal);font-family:var(--font-data);font-size:14px;padding-top:5px}
 .reading-flow h3{margin:0 0 10px;font-size:19px}.reading-flow p{max-width:70ch;margin:0;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere}
 .reading-flow details{margin-top:16px}.reading-flow details p{margin-top:12px}
+.peer-row>div{min-width:0;width:100%}.peer-differences{margin-top:16px}.peer-differences table{min-width:640px;table-layout:fixed;width:100%}.peer-differences th:first-child{width:22%}.peer-differences td{vertical-align:top;white-space:normal;overflow-wrap:anywhere}.peer-differences small{display:block;margin-top:6px}.peer-differences ul{padding-left:18px}.peer-differences p{font-size:14px;line-height:1.7}

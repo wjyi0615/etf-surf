@@ -241,3 +241,11 @@ assert.ok(elements.main.innerHTML.includes('이 조건에 맞는 등록 상품�
 ctx.location.hash='#/';vm.runInContext('render(false)',ctx);
 assert.equal((elements.main.innerHTML.match(/class="topic-card"/g)||[]).length,6);
 console.log('Six topic entrances, actual subtypes, rates split, empty state and detail return passed.');
+for(const e of funds)for(const peer of R.peers(e,funds)){
+ const html=vm.runInContext(`peerDifferences(funds.find(e=>e.ticker==='${e.ticker}'),funds.find(e=>e.ticker==='${peer.ticker}'))`,ctx);
+ for(const label of ['총보수','기타비용·거래비용','환헤지 정책','분배 방식·주기','확인한 구성','미확보','자료 기준일'])assert.ok(html.includes(label));
+ assert.ok(html.includes(e.name.replaceAll('&','&amp;')));assert.ok(html.includes(peer.name.replaceAll('&','&amp;')));
+ assert.ok(!html.includes('undefined'));assert.ok(!html.includes('NaN'));
+}
+assert.equal(vm.runInContext("peerComposition({ticker:'missing'})",ctx),'미확보');
+console.log('All same-index pairs expose sourced differences and explicit missing fields.');

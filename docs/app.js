@@ -138,9 +138,27 @@ function dataAvailability(e){
  const history=e.distributionHistory;
  return `<section class="panel section"><h2>어디까지 확인된 자료인가요?</h2><dl><div><dt>가격·거래량</dt><dd>${esc(e.asOf)} 기준 · NAVER 종가<small>실시간 시세가 아닙니다.</small></dd></div>${['expenseRatio','aum','inceptionDate'].map((key,i)=>`<div><dt>${['총보수','순자산','상장일'][i]}</dt><dd>${fundamental(e,key)}</dd></div>`).join('')}<div><dt>분배금</dt><dd>${history?`일부 ${e.distributions.length}건 확인<small>지급 기준일 ${e.distributions[0].recordDate} ~ ${e.distributions.at(-1).recordDate}</small><small>확인 ${history.checkedAt} · <a href="${url(history.sourceUrl)}" target="_blank" rel="noopener noreferrer">공식 지급 내역 ↗</a></small>`:'미확보 · 지급액이 0원이라는 뜻이 아닙니다.'}</dd></div><div><dt>NAV·추적오차</dt><dd>미확보 · 계산하지 않습니다.</dd></div></dl><p class="muted">가격 갱신은 보수·순자산·분배금 확인일을 갱신하지 않습니다. 과거 자료를 현재 값으로 판단하지 말고 공식 자료를 다시 확인해 주세요.</p></section>`;
 }
+/** Show sourced snapshots without inferring policies from names or payment events. */
+function peerComposition(e){
+ const h=window.ETF_FUNDAMENTALS?.holdings?.[e.ticker];
+ if(!h||!/^https:\/\//.test(h.sourceUrl||'')||!Number.isFinite(Date.parse(h.asOf)))return '미확보';
+ const valid=h.kind!=='structure'&&Array.isArray(h.items)&&h.items.length&&h.items.every(x=>typeof x.name==='string'&&Number.isFinite(x.weight)&&x.weight>=0&&x.weight<=100)&&h.items.reduce((sum,x)=>sum+x.weight,0)<=100;
+ return `${valid?`일부 ${h.items.length}개 항목 확인<ul>${h.items.slice(0,3).map(x=>`<li>${esc(x.name)} ${x.weight.toFixed(2)}%</li>`).join('')}</ul>`:'편입 종목·비중 미확보 · 투자 구조 설명만 확인'}<small>자료 기준일 ${esc(h.asOf)} · 확인 ${esc(h.checkedAt||'미확보')}</small><small>${esc(compositionAge(h))}</small><a href="${url(h.sourceUrl)}" target="_blank" rel="noopener noreferrer">구성 출처 ↗</a>`;
+}
+function peerDifferences(e,other){
+ const rows=[
+  ['총보수',x=>fundamental(x,'expenseRatio')],
+  ['순자산',x=>fundamental(x,'aum')],
+  ['기타비용·거래비용',()=> '미확보'],
+  ['환헤지 정책',()=> '미확보 · 상품명만으로 판정하지 않아요.'],
+  ['분배 방식·주기',x=>'미확보'+(x.distributionHistory?`<small>일부 지급 ${x.distributions.length}건 확인 · 정기 지급 정책을 뜻하지 않아요.</small><a href="${url(x.distributionHistory.sourceUrl)}" target="_blank" rel="noopener noreferrer">확인한 지급 내역 ↗</a>`:' · 지급액이 0원이라는 뜻은 아니에요.')],
+  ['확인한 구성',peerComposition]
+ ];
+ return `<details class="peer-differences"><summary>비용·환헤지·분배·구성 차이 보기</summary><p>같은 지수를 따라도 실제 비용과 운용 방식은 다를 수 있어요. 확인된 자료를 나란히 읽어보세요.</p><div class="table-wrap" tabindex="0" role="region" aria-label="${esc(e.name)}과 ${esc(other.name)} 특성 비교 · 가로 스크롤"><table><caption>같은 지수 ETF의 확인 자료 비교</caption><thead><tr><th scope="col">확인 항목</th><th scope="col">${esc(e.name)}<small>현재 상품</small></th><th scope="col">${esc(other.name)}</th></tr></thead><tbody>${rows.map(([label,render])=>`<tr><th scope="row">${label}</th><td>${render(e)}</td><td>${render(other)}</td></tr>`).join('')}</tbody></table></div><p class="muted">총보수는 전체 비용이 아닙니다. 자료 기준일이 다르면 현재의 비용 차이로 해석하지 마세요. 구성은 일부 과거 자료로, 같은 날짜의 전체 내역이 아니므로 종목 중복률이나 운용 차이를 계산하지 않습니다.</p><p class="muted">환헤지 정책·분배 주기는 확인된 항목별 자료가 없어 미확보로 표시합니다. 미확보는 두 상품의 정책이 같다는 뜻이 아닙니다.</p><div class="actions"><a href="${url(e.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(e.name)} 공식 자료 ↗</a><a href="${url(other.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(other.name)} 공식 자료 ↗</a></div></details>`;
+}
 function similarProducts(e){
  const list=R.peers(e,funds);
- return `<section class="panel section"><h2>같은 지수의 ETF 비교하기</h2><p>추종지수·자산 종류·지역·전략·상품유형이 같은 등록 상품만 연결합니다. 성과 순위가 아닙니다. 총보수·규모·자료 기준일을 확인한 뒤 두 상품을 비교해요. 총보수는 전체 투자 비용과 다르며, 기준일이 다른 수치로 우열을 판단하지 않아요.</p>${list.length?list.map(x=>`<div class="peer-row"><div><a href="#/etf/${x.ticker}">${esc(x.name)}</a><small> · ${esc(x.issuer)}</small><p>같은 투자 기준: ${esc(x.benchmark)}</p><dl><div><dt>총보수</dt><dd>${fundamental(x,'expenseRatio')}</dd></div><div><dt>순자산</dt><dd>${fundamental(x,'aum')}</dd></div></dl></div><button class="secondary" data-peer="${e.ticker}:${x.ticker}" aria-label="${esc(e.name)}과 ${esc(x.name)} 비교">이 상품과 비교 →</button></div>`).join(''):'<p class="notice">현재 등록 목록에는 같은 기준의 다른 상품이 없습니다. 시장에 비교 상품이 없다는 뜻은 아닙니다.</p><a href="#/explore">전체 등록 상품 둘러보기 →</a>'}${list.length?'<p class="muted">버튼을 누르면 기존 비교 목록을 이 두 상품으로 바꿉니다.</p>':''}</section>`;
+ return `<section class="panel section"><h2>같은 지수의 ETF 비교하기</h2><p>추종지수·자산 종류·지역·전략·상품유형이 같은 등록 상품만 연결합니다. 성과 순위가 아닙니다. 총보수·규모·자료 기준일을 확인한 뒤 두 상품을 비교해요. 총보수는 전체 투자 비용과 다르며, 기준일이 다른 수치로 우열을 판단하지 않아요.</p>${list.length?list.map(x=>`<div class="peer-row"><div><a href="#/etf/${x.ticker}">${esc(x.name)}</a><small> · ${esc(x.issuer)}</small><p>같은 투자 기준: ${esc(x.benchmark)}</p>${peerDifferences(e,x)}</div><button class="secondary" data-peer="${e.ticker}:${x.ticker}" aria-label="${esc(e.name)}과 ${esc(x.name)} 비교">이 상품과 비교 →</button></div>`).join(''):'<p class="notice">현재 등록 목록에는 같은 기준의 다른 상품이 없습니다. 시장에 비교 상품이 없다는 뜻은 아닙니다.</p><a href="#/explore">전체 등록 상품 둘러보기 →</a>'}${list.length?'<p class="muted">버튼을 누르면 기존 비교 목록을 이 두 상품으로 바꿉니다.</p>':''}</section>`;
 }
 function comparePair(value){
  const [first,second]=String(value).split(':'),e=funds.find(x=>x.ticker===first);
