@@ -171,9 +171,16 @@ function dataStatus(){
  const H=window.ETFHealth;
  if(!H)return heading('DATA STATUS','갱신 현황을 불러오지 못했어요')+'<button data-retry>다시 불러오기</button>';
  const params=new URLSearchParams(location.hash.split('?')[1]||''),ticker=params.get('ticker');
- const rows=H.rows(funds,window.ETF_FUNDAMENTALS),shown=ticker?rows.filter(r=>r.ticker===ticker):rows;
+ const search=params.get('query')||'',state=params.get('state')||'all';
+ const rows=H.rows(funds,window.ETF_FUNDAMENTALS),shown=rows.filter(r=>(!ticker||r.ticker===ticker)&&(!search||(r.name+' '+r.ticker).toLowerCase().includes(search.toLowerCase()))&&(state==='all'||r.status===state));
+ const grouped=new Map();for(const r of shown){if(!grouped.has(r.ticker))grouped.set(r.ticker,[]);grouped.get(r.ticker).push(r);}
+ const matches=funds.filter(e=>grouped.has(e.ticker)),pages=Math.max(1,Math.ceil(matches.length/20));
+ const page=Math.min(pages,Math.max(1,Math.floor(Number(params.get('page'))||1))),visible=matches.slice((page-1)*20,page*20);
+ const pageLink=n=>{const p=new URLSearchParams(params);p.set('page',n);return '#/data?'+p;};
+ const filters=`<form novalidate id="health-filters" class="panel filters"><label>상품명·종목코드<input name="search" value="${esc(search)}" type="search" placeholder="예: KODEX 또는 069500"></label>${filterSelect('state','자료 상태',Object.fromEntries(['재확인 필요','미확보','날짜 확인 필요','출처 확인 필요','기록 확인'].map(s=>[s,s])),state)}${ticker?`<input type="hidden" name="ticker" value="${esc(ticker)}">`:''}<button type="submit">검색</button><a href="#/data">전체 보기</a></form>`;
+ const pagination=`<nav class="actions" aria-label="자료 목록 페이지">${page>1?`<a href="${pageLink(page-1)}">← 이전</a>`:''}<span>${page} / ${pages} 페이지 · ${matches.length}개 상품 · 페이지당 최대 20개</span>${page<pages?`<a href="${pageLink(page+1)}">다음 →</a>`:''}</nav>`;
  const counts=rows.reduce((out,r)=>(out[r.status]=(out[r.status]||0)+1,out),{});
- return heading('DATA STATUS','자료 갱신 현황','기준일은 자료가 나타내는 시점, 확인일은 출처를 열어 확인한 날입니다.')+notice()+`<section class="panel section"><h2>자동 가격 갱신과 수동 자료 확인</h2><p>가격은 자동 수집합니다. 보수·순자산·구성·분배 자료는 공식 원문을 수동 확인하며, 가격 수집으로 날짜를 변경하지 않습니다.</p><p>총보수·순자산은 기준일 31일, 구성·정책은 180일, 분배금 내역은 확인일 31일이 지나면 재확인이 필요합니다. 상장일은 고정 정보여서 기간 만료가 없습니다.</p><small>사이트 관리 기준이며 자료 정확성이나 최신성을 보장하는 기준은 아닙니다. ‘기록 확인’도 실시간 자료를 뜻하지 않습니다.</small><p>점검일 ${H.today()} (한국시간) · ${Object.entries(counts).map(([s,n])=>esc(s)+' '+n+'건').join(' · ')}</p></section><section class="section"><h2>${ticker?'선택 상품':'등록 상품 전체'} · ${shown.length}개 항목</h2>${ticker?'<a href="#/data">전체 상품 현황 보기 →</a>':''}${funds.filter(e=>!ticker||e.ticker===ticker).map(e=>`<details class="panel section" ${ticker?'open':''}><summary>${esc(e.name)} · ${rows.filter(r=>r.ticker===e.ticker&&r.status!=='기록 확인').length}개 항목 확인 필요</summary><a href="#/etf/${e.ticker}">상품 상세 →</a><dl class="health-list">${shown.filter(r=>r.ticker===e.ticker).map(r=>`<div><dt>${r.label}</dt><dd><strong>${r.status}</strong><small>자료 기준일 ${esc(r.asOf||'미확보')} · 출처 확인일 ${esc(r.checkedAt||'미확보')}${r.basis==='checkedAt'?' · 확인일로 점검':''}</small>${r.sourceUrl?`<a href="${url(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(r.sourceName||'출처 확인 필요')} ↗</a>`:''}</dd></div>`).join('')}</dl></details>`).join('')||'<p class="empty">등록된 상품이 없습니다. <a href="#/data">전체 현황 보기</a></p>'}</section>`;
+ return heading('DATA STATUS','자료 갱신 현황','기준일은 자료가 나타내는 시점, 확인일은 출처를 열어 확인한 날입니다.')+notice()+filters+`<section class="panel section"><h2>자동 가격 갱신과 수동 자료 확인</h2><p>가격은 자동 수집합니다. 보수·순자산·구성·분배 자료는 공식 원문을 수동 확인하며, 가격 수집으로 날짜를 변경하지 않습니다.</p><p>총보수·순자산은 기준일 31일, 구성·정책은 180일, 분배금 내역은 확인일 31일이 지나면 재확인이 필요합니다. 상장일은 고정 정보여서 기간 만료가 없습니다.</p><small>사이트 관리 기준이며 자료 정확성이나 최신성을 보장하는 기준은 아닙니다. ‘기록 확인’도 실시간 자료를 뜻하지 않습니다.</small><p>점검일 ${H.today()} (한국시간) · ${Object.entries(counts).map(([s,n])=>esc(s)+' '+n+'건').join(' · ')}</p></section><section class="section"><h2>${ticker?'선택 상품':'등록 상품 전체'} · ${shown.length}개 항목</h2>${ticker?'<a href="#/data">전체 상품 현황 보기 →</a>':''}${pagination}${visible.map(e=>`<details class="panel section" ${ticker?'open':''}><summary>${esc(e.name)} · ${grouped.get(e.ticker).filter(r=>r.status!=='기록 확인').length}개 항목 확인 필요</summary><a href="#/etf/${e.ticker}">상품 상세 →</a><dl class="health-list">${grouped.get(e.ticker).map(r=>`<div><dt>${r.label}</dt><dd><strong>${r.status}</strong><small>자료 기준일 ${esc(r.asOf||'미확보')} · 출처 확인일 ${esc(r.checkedAt||'미확보')}${r.basis==='checkedAt'?' · 확인일로 점검':''}</small>${r.sourceUrl?`<a href="${url(r.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(r.sourceName||'출처 확인 필요')} ↗</a>`:''}</dd></div>`).join('')}</dl></details>`).join('')||'<p class="empty">등록된 상품이 없습니다. <a href="#/data">전체 현황 보기</a></p>'}</section>`;
 }
 function readCatalogState(arg='') {
  const params=new URLSearchParams((location.hash||'').split('?')[1]||'');
@@ -285,7 +292,8 @@ main.addEventListener('submit',event=>{
  event.preventDefault();if(composing)return;
  const form=event.target,data=Object.fromEntries(new FormData(form));
  if(!validateForm(form,data))return;
- if(form.id==='discovery'){location.hash=discoveryLink({topic:data.topic,market:data.market},'all');}
+ if(form.id==='health-filters'){location.hash='#/data?'+new URLSearchParams({query:data.search.trim(),state:data.state,...(data.ticker?{ticker:data.ticker}:{})});}
+ else if(form.id==='discovery'){location.hash=discoveryLink({topic:data.topic,market:data.market},'all');}
  else if(form.id==='guide'){try{R.recommend(data,funds);answers=data;location.hash='#/result';}catch(e){notify(e.message);}}
  else if(form.id==='filters'){
   history.pushState(null,'',catalogLink(data));render(false);
