@@ -1,4 +1,5 @@
 .DS_Store
+.local-data/
 .env
 .env.*
 !.env.example
