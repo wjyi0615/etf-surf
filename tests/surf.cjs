@@ -40,7 +40,12 @@ assert.equal((fs.readFileSync('docs/index.html','utf8').match(/<!doctype html>/g
 assert.ok(!fs.readFileSync('docs/index.html','utf8').includes('#/basket'));
 for(const route of ['guide','explore','compare','learn','method','result','missing']){ctx.location.hash='#/'+route;vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.length>20);}
 vm.runInContext("answers={goal:'growth',horizon:'long',risk:'accept',market:'korea'}",ctx);
-ctx.location.hash='#/result';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('KODEX 200'));assert.ok(elements.main.innerHTML.includes('투자 시나리오'));
+for(const route of ['result','questionnaire']){
+ ctx.location.hash='#/'+route;vm.runInContext('render(false)',ctx);
+ assert.ok(elements.main.innerHTML.includes('설문 기반 상품 추천은 제공하지 않습니다'));
+ assert.ok(!elements.main.innerHTML.includes('KODEX 200'));
+ assert.ok(!elements.main.innerHTML.includes('<form'));
+}
 for(const e of funds){ctx.location.hash='#/etf/'+e.ticker;vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes(e.ticker));}
 ctx.location.hash='#/etf/360750';vm.runInContext('render(false)',ctx);assert.ok(elements.main.innerHTML.includes('0.0068%'));
 vm.runInContext("selected.add('069500');selected.add('114260');selected.add('161510')",ctx);
