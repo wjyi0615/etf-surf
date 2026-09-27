@@ -60,7 +60,7 @@ assert.equal(vm.runInContext("comparePair('069500:132030')",ctx),false);
 assert.equal(vm.runInContext("comparePair('999999:102110')",ctx),false);
 for(const e of funds){
  ctx.location.hash='#/etf/'+e.ticker;vm.runInContext('render(false)',ctx);
- assert.ok(elements.main.innerHTML.includes('가격에 영향을 주는 요인'));
+ assert.ok(elements.main.innerHTML.includes('어떤 영향을 받나요?'));
  assert.ok(elements.main.innerHTML.includes('어디까지 확인된 자료'));
 }
 ctx.location.hash='#/etf/132030';vm.runInContext('render(false)',ctx);
@@ -155,7 +155,13 @@ for(const e of funds){
  assert.equal(html.includes('환헤지 전략'),e.name.includes('(H)'));
  assert.equal(html.includes('계약 상대방 위험'),e.name.includes('합성'));
  const composition=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
- for(const label of ['투자 대상','영향 요인','주의할 점','자료 기준일'])assert.ok(composition.includes(label));
+ assert.ok(composition.includes('자료 기준일'));
+ const guide=vm.runInContext(`detailGuide(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ for(const label of ['어디에 투자하나요?','어떤 영향을 받나요?','무엇을 주의해야 하나요?'])assert.ok(guide.includes(label));
+ assert.ok(guide.includes(R.explanation(e).risk));
+ const detail=vm.runInContext(`detail('${e.ticker}')`,ctx);
+ assert.ok(detail.indexOf('reading-title')<detail.indexOf('04 / EVIDENCE'));
+ assert.ok(detail.indexOf('04 / EVIDENCE')<detail.indexOf('ETF 이름 풀어보기'));
 }
 console.log('Name explanations and source-age boundary checks passed.');
 for(const choice of ['soon','later','unknown']){

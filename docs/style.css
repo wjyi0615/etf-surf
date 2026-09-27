@@ -216,3 +216,9 @@ input[type=number] { width: 100%; margin-block: 8px; }
 .subtype-card details{margin:8px 0 24px}.subtype-card>.button{margin-top:auto;align-self:flex-start}
 @media(max-width:1000px){.topic-grid,.subtype-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topic-filter{grid-template-columns:1fr}}
 @media(max-width:600px){.topic-grid,.subtype-grid{grid-template-columns:1fr}.topic-card,.subtype-card{padding:22px}.subtype-card.is-selected{padding:21px}.topic-filter .form-grid{grid-template-columns:1fr}}
+.reading-flow{list-style:none;padding:0;margin:28px 0 20px}
+.reading-flow>li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:16px;padding:22px 0;border-bottom:1px solid var(--line)}
+.reading-flow>li:first-child{padding-top:0}.reading-flow>li:last-child{border-bottom:0;padding-bottom:0}
+.reading-step{color:var(--teal);font-family:var(--font-data);font-size:14px;padding-top:5px}
+.reading-flow h3{margin:0 0 10px;font-size:19px}.reading-flow p{max-width:70ch;margin:0;line-height:1.8;word-break:keep-all;overflow-wrap:anywhere}
+.reading-flow details{margin-top:16px}.reading-flow details p{margin-top:12px}

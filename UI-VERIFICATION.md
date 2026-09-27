@@ -1,5 +1,11 @@
 # ETF Surf UI verification
 
+## Detail reading flow — 2026-09-27
+
+- `codex/detail-reading-flow`: all 20 existing products use visible target → drivers → risk, followed by composition evidence. Existing text, sources and dates retained; repeated composition explanation removed.
+- JS suite, Python five tests, syntax and whitespace checks pass. Strict audit retains the same three delegated-button false positives.
+- Real browser: gold-futures detail checked at 1280px and 390px; no mobile horizontal overflow. Keyboard Enter expands the checklist with visible focus; comparison selection preserves it. Local preview only, no deployment.
+
 ## Topic discovery update — 2026-09-27
 
 - Base: origin/main `18aeeb1`, local branch `codex/topic-discovery`; no merge or deployment.
