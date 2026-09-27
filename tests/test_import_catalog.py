@@ -29,9 +29,18 @@ class CatalogImport(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(ValueError):
                 self.parse(text)
         for overrides in [dict(as_of='2099-01-01'), dict(as_of='2026-02-30'),
-                          dict(source_url='https://krx.co.kr.example.com/')]:
+                          dict(source_url='http://example.com/'),
+                          dict(source_url='https://user:password@example.com/'),
+                          dict(source_url='https:///'), dict(source_name=' ')]:
             with self.assertRaises(ValueError):
                 self.parse('code,name\n000001,a', **overrides)
+
+    def test_other_source_is_not_automatically_approved(self):
+        result = self.parse('code,name\n000001,a', source_url='https://example.com/catalog',
+                            source_name='테스트 제공자', permission_note='검토 문서 참조')
+        self.assertEqual(result['sourceName'], '테스트 제공자')
+        self.assertEqual(result['publicationStatus'], 'unreviewed')
+        self.assertEqual(result['permissionNote'], '검토 문서 참조')
 
 
 if __name__ == '__main__':
