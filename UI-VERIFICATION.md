@@ -1,5 +1,11 @@
 # ETF Surf UI verification
 
+## Data freshness — 2026-09-27
+
+- Shared browser/CLI policy: 140 manual fields across 20 funds. Report: 31 recheck, 26 recorded, 75 unavailable, 8 date checks. These are snapshot maintenance findings, not refreshed source values.
+- JS regression plus freshness boundaries, invalid/future dates, missing sources and nonmutation tests pass. Browser inspected product-specific report and mobile 390px without document overflow.
+- Workflow report/artifact steps authored but not executed on GitHub; no deployment. Existing price update behavior preserved.
+
 ## Peer differences — 2026-09-27
 
 - Branch `codex/peer-differences`: same-index pairs reuse peers(), fundamental(), and official composition snapshots. No policy inferred from names or payment events. Unverified hedge/distribution/additional-cost fields explicitly unavailable.

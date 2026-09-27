@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const ctx={window:{},console,Date,URLSearchParams};vm.createContext(ctx);
-for(const f of ['prices','fundamentals','data-core','rules'])vm.runInContext(fs.readFileSync(`docs/${f}.js`,'utf8'),ctx);
+for(const f of ['prices','fundamentals','data-core','rules','data-health'])vm.runInContext(fs.readFileSync(`docs/${f}.js`,'utf8'),ctx);
 const C=ctx.window.ETFCore,R=ctx.window.SurfRules,funds=C.catalog(ctx.window.ETF_DATA);
 assert.equal(funds.length,20);
 let cases=0;
@@ -249,3 +249,17 @@ for(const e of funds)for(const peer of R.peers(e,funds)){
 }
 assert.equal(vm.runInContext("peerComposition({ticker:'missing'})",ctx),'미확보');
 console.log('All same-index pairs expose sourced differences and explicit missing fields.');
+const H=ctx.window.ETFHealth,record={asOf:'2026-01-01',checkedAt:'2026-02-01',sourceName:'Official',sourceUrl:'https://example.com'};
+assert.equal(H.status(null,31,'2026-02-01'),'미확보');
+assert.equal(H.status(record,31,'2026-02-01'),'재확인 필요');
+assert.equal(H.status(record,31,'2026-02-01','checkedAt'),'기록 확인');
+assert.equal(H.status({...record,asOf:'2026-02-30'},31,'2026-03-01'),'날짜 확인 필요');
+assert.equal(H.status({...record,checkedAt:'2027-01-01'},31,'2026-03-01'),'날짜 확인 필요');
+assert.equal(H.status({...record,sourceUrl:''},31,'2026-03-01'),'출처 확인 필요');
+assert.equal(H.status(record,null,'2026-09-27'),'기록 확인');
+const raw=JSON.stringify(ctx.window.ETF_FUNDAMENTALS);
+assert.equal(H.rows(funds,ctx.window.ETF_FUNDAMENTALS,'2026-09-27').length,140);
+assert.equal(JSON.stringify(ctx.window.ETF_FUNDAMENTALS),raw);
+ctx.location.hash='#/data?ticker=069500';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('7개 항목'));assert.ok(elements.main.innerHTML.includes('KODEX 200'));
+console.log('Freshness boundaries, missing/invalid sources, read-only snapshots and data status route passed.');
