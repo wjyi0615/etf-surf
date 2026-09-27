@@ -23,17 +23,6 @@ jobs:
         id: collect
         continue-on-error: true
         run: python scripts/update_prices.py
-      - name: Audit manual source freshness
-        if: always()
-        continue-on-error: true
-        run: node scripts/audit_data.cjs > data-health-report.json
-      - name: Save data maintenance report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: data-health-report
-          path: data-health-report.json
-          retention-days: 30
       - name: Persist prices or failure status
         env:
           TARGET_BRANCH: ${{ github.ref_name }}

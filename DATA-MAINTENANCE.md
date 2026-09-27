@@ -8,7 +8,7 @@
 
 `node scripts/audit_data.cjs > /tmp/etf-data-health.json`
 
-재현 가능한 점검은 `node scripts/audit_data.cjs 2026-09-27`처럼 날짜를 지정한다. 출처·날짜 누락/오류는 종료코드 1이다. 미확보·재확인 필요는 작업 목록이며 가격 갱신을 막지 않는다. GitHub 가격 갱신 작업은 보고서를 30일 보관하는 artifact로 남긴다. 로컬 화면 `#/data`는 같은 정책으로 조회일에 다시 계산한다.
+재현 가능한 점검은 `node scripts/audit_data.cjs 2026-09-27`처럼 날짜를 지정한다. 출처·날짜 누락/오류는 종료코드 1이다. 미확보·재확인 필요는 작업 목록이며 가격 갱신을 막지 않는다. GitHub 보고서 artifact 자동 저장은 workflow 수정 권한 확보 전까지 보류한다. 보고서는 위 명령으로 수동 생성할 수 있다. 화면 `#/data`는 같은 정책으로 조회일에 다시 계산한다.
 
 ## 수동 갱신 순서
 
