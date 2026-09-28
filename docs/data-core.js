@@ -16,7 +16,7 @@
     return data.universe.map(e => {
       const dates = data.dates_by_symbol?.[e.symbol] || data.dates;
       if (!Array.isArray(dates) || dates.length < 2 || dates.some((d,i) => !validDate(d) || (i && d <= dates[i-1]))) throw Error('상품별 가격 날짜가 올바르지 않습니다.');
-      if (!/^\d{6}$/.test(e.symbol) || seen.has(e.symbol)) throw Error('종목코드가 올바르지 않습니다.');
+      if (!/^[0-9A-Z]{6}$/.test(e.symbol) || seen.has(e.symbol)) throw Error('종목코드가 올바르지 않습니다.');
       seen.add(e.symbol);
       const prices = data.prices?.[e.symbol];
       if (!Array.isArray(prices) || prices.length !== dates.length || prices.some(p => !Number.isFinite(p) || p <= 0)) throw Error('유효하지 않은 가격 데이터입니다.');
@@ -63,6 +63,7 @@
   }
   /** Latest observed close on/before the calendar boundary; no extrapolation. */
   function rangeStart(dates, months) {
+    if (!dates || dates.length < 2) return -1;
     if (!months) return 0;
     const cutoff = monthsBefore(dates.at(-1), months);
     if (dates[0] > cutoff) return -1;
@@ -112,6 +113,20 @@
     const q=query.trim().toLowerCase();
     return list.filter(e=>(category==="all"||e.category===category)&&(region==="all"||e.region===region)&&(strategy==="all"||e.strategy===strategy)&&(group==="all"||e.group===group)&&(e.name+e.ticker+e.issuer+e.benchmark).toLowerCase().includes(q));
   }
-  const api={filterEtfs,fmt,catalog,rangeStart,periodReturn,monthsBefore,simulate,contributions};
+  /** Add sourced reading records without inventing price histories or overwriting snapshots. */
+  function withDescriptions(funds, extra=[]) {
+    if (!Array.isArray(extra)) throw Error('상품 설명 목록을 확인해 주세요.');
+    const seen=new Set(funds.map(e=>e.ticker));
+    return [...funds,...extra.map(e=>{
+      if (!/^[0-9A-Z]{6}$/.test(e.ticker)||seen.has(e.ticker)||!e.name||!/^https:\/\//.test(e.sourceUrl||'')||!validDate(e.checkedAt)||!e.reading?.target||!e.reading?.risk) throw Error('상품 설명 출처와 종목코드를 확인해 주세요.');
+      if(e.sourceAsOf&&(!validDate(e.sourceAsOf)||e.sourceAsOf>e.checkedAt))throw Error('상품 설명 기준일을 확인해 주세요.');
+      seen.add(e.ticker);
+      return {...e,price:null,asOf:null,dates:[],prices:[],aum:null,expenseRatio:null,volume:null,
+        inceptionDate:null,metadata:{},holdings:[],distributions:[],distributionHistory:null,nav:[],benchmarkPrices:[],
+        trackingError:null,premiumDiscount:null,dividendYield:null,
+        provenance:{provider:null,metadataStatus:'description_only'},returns:{month:null,quarter:null,year:null}};
+    })];
+  }
+  const api={filterEtfs,fmt,catalog,withDescriptions,rangeStart,periodReturn,monthsBefore,simulate,contributions};
   if (typeof module !== 'undefined') module.exports=api; else root.ETFCore=api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -275,3 +275,37 @@ ctx.location.hash='#/data?page=55';vm.runInContext('render(false)',ctx);
 assert.equal((elements.main.innerHTML.match(/class="health-list"/g)||[]).length,20);
 assert.ok(elements.main.innerHTML.includes('55 / 55'));
 vm.runInContext('funds=savedFunds',ctx);
+// Description-only catalog: never fabricate prices, peer matches or performance.
+vm.runInContext(fs.readFileSync('docs/catalog-extra.js','utf8'),ctx);
+const extras=ctx.window.ETF_CATALOG_EXTRA,expanded=C.withDescriptions(funds,extras);
+assert.equal(expanded.length,34);assert.equal(extras.length,14);
+assert.ok(!expanded.some(e=>e.ticker==='411060'));
+assert.equal(C.withDescriptions([],extras).length,14);
+assert.throws(()=>C.withDescriptions(funds,[extras[0],extras[0]]));
+assert.throws(()=>C.withDescriptions(funds,[{...extras[0],sourceUrl:'javascript:alert(1)'}]));
+for(const e of expanded.filter(e=>e.reading)){
+ assert.equal(e.price,null);assert.equal(e.prices.length,0);
+ assert.equal(R.performance(e),null);assert.equal(R.scenario(e,{monthly:100000,months:12}),null);
+ assert.equal(R.comparison([funds[0],e]).length,0);
+ assert.equal(R.productGuide(e).target,e.description);
+ assert.ok(!R.peers(e,expanded).some(p=>!p.benchmark));
+}
+vm.runInContext('funds=C.withDescriptions(funds,window.ETF_CATALOG_EXTRA)',ctx);
+for(const e of extras){
+ const html=vm.runInContext(`detail('${e.ticker}')`,ctx);
+ assert.ok(html.includes('설명 자료 · 가격 미확보'));
+ assert.ok(html.includes(e.reading.target));assert.ok(html.includes('가격 미확보 상품'));
+ assert.ok(!html.includes('undefined'));assert.ok(!html.includes('NaN'));
+}
+ctx.location.hash='#/explore?region=japan';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,1);
+ctx.location.hash='#/guide?topic=bonds&market=us';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('0091C0'));
+ctx.location.hash='#/guide?topic=cash&group=kofr';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,2);
+vm.runInContext("selected=new Set(['069500','0091C0'])",ctx);
+assert.ok(vm.runInContext('compare()',ctx).includes('가격 미확보 상품'));
+ctx.location.hash='#/explore?query=존재하지않는상품';vm.runInContext('render(false)',ctx);
+assert.ok(elements.main.innerHTML.includes('검색 결과가 없어요'));
+assert.ok(fs.readFileSync('docs/index.html','utf8').indexOf('catalog-extra.js')<fs.readFileSync('docs/index.html','utf8').indexOf('app.js'));
+console.log('34-product catalog: descriptions, missing-price calculations, alphanumeric routes, markets, topics and mixed comparison passed.');

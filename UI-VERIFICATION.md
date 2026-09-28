@@ -54,3 +54,10 @@ Verified locally on 2026-09-26. No production deployment was performed.
 ## Limits
 
 The browser checks use the available in-app browser, not a full Safari/Firefox/Android matrix. Reduced-motion and forced-colors paths were checked in source; no emulated high-contrast or screen-reader certification is claimed. Recommendation rules, dataset files and pricing calculations are unchanged. No new persistence of questionnaire answers or comparison selection was introduced.
+
+## Description catalog · 2026-09-28
+
+- 34 products render: 20 existing priced products and 14 description-only entries. All 14 detail routes and mixed-price comparison are covered by regression tests.
+- Actual in-app browser: Japanese filter returns one ETF; detail shows source date, check date, stale notice and missing-price status. At 390px document width and scroll width both equal 390px; screenshot reviewed.
+- At 1280px, both Kosdaq ETFs can be selected and compared; missing prices suppress chart and shared-period metrics. Comparison removal button works. No observed browser console errors. Temporary viewport override reset; exploration preview left open.
+- JavaScript regression suite and Python 8-test suite pass. Strict premium audit retains three pre-existing delegated-button false positives (data-peer/data-select); handlers are delegated, not inline. Comparison removal verified in browser; peer logic covered by regression tests. Static audit is not reported as fully passing.

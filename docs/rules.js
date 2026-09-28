@@ -24,6 +24,7 @@ function recommend(a,funds){
  return {title,reason:reason+(selected.length?'':' 현재 등록 범위에는 조건에 맞는 상품이 없습니다. 관심 시장을 바꾸거나 전체 탐색에서 살펴보세요.'),funds:selected,kind:selected.length?'candidates':'unavailable'};
 }
 function explanation(e){
+ if(e.reading)return {why:e.reading.target,risk:e.reading.risk,check:e.reading.check};
  if(e.category==='cash')return {why:'단기 금리와 합성 ETF의 구조를 살펴볼 수 있어요.',risk:'예금자보호나 원금 보장이 없고, 거래상대방 위험과 금리 변화에 따른 수익 변화가 있어요.',check:'비교지수·합성 구조·거래상대방·총보수'};
  if(e.strategy==='short')return {why:'만기가 짧은 채권이 금리 변화에 어떻게 반응하는지 배울 수 있어요.',risk:'단기채도 금리·신용 위험으로 손실이 발생할 수 있어요.',check:'편입 채권·만기·신용등급·총보수'};
  if(e.group==='nasdaq')return {why:'나스닥100과 S&P500의 구성 차이를 배울 수 있어요.',risk:'기술·성장 기업 비중과 환율 변화에 영향을 받아 손실이 커질 수 있어요.',check:'구성종목·산업 비중·환헤지 여부·총보수'};
@@ -44,6 +45,7 @@ function peers(e,funds){
 }
 /** Educational drivers, not an attribution of today's observed price movement. */
 function productGuide(e){
+ if(e.reading)return e.reading;
  if(e.category==='cash')return {target:e.benchmark+'를 비교지수로 사용하는 합성 액티브 상품이에요. 은행 예금이나 확정금리 상품은 아니에요.',drivers:'단기 금리 수준, 비용, 장외파생상품 거래상대방의 계약 이행 여부에 영향을 받아요.',check:'CD와 KOFR는 서로 다른 금리예요. 합성 구조와 담보·거래상대방, 호가 차이를 확인해요.',lesson:'cash'};
  if(e.strategy==='short')return {target:'만기가 짧은 국내 채권에 투자해요. 국고채·통안채 등 실제 편입 대상은 상품마다 달라요.',drivers:'금리와 보유 채권의 신용도, 이자와 비용에 영향을 받아요. 단기라는 이름이 손실이 없다는 뜻은 아니에요.',check:'지수와 편입 채권, 만기와 금리 민감도를 비교해요. 단기채끼리도 같은 지수를 따르지는 않아요.',lesson:'bonds'};
  if(e.group==='nasdaq')return {target:'미국 나스닥100 지수를 따르는 상품이에요. S&P500과 구성종목·업종 비중이 달라요.',drivers:'기술·성장 기업의 주가와 원·달러 환율에 영향을 받아요. 여러 기업을 담아도 특정 업종의 영향이 클 수 있어요.',check:'S&P500과 겹치는 종목과 업종 비중, 환헤지 여부와 비용을 살펴봐요.',lesson:'nasdaq'};
@@ -81,6 +83,7 @@ function performance(fund,months=12){
 }
 function scenario(fund,{monthly,months}){
  if(!fund||!Number.isFinite(monthly)||monthly<1000||monthly>1e8||![12,36,60].includes(months))throw Error('투자금과 기간을 확인해 주세요.');
+ if(fund.dates.length<2)return null;
  const end=fund.dates.at(-1),lastMonth=end.slice(0,7);
  const first=new Date(lastMonth+'-01T00:00:00Z');first.setUTCMonth(first.getUTCMonth()-(months-1));
  const start=first.toISOString().slice(0,10);
