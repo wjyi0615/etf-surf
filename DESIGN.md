@@ -1,16 +1,16 @@
 ---
 version: alpha
 name: ETF Surf
-description: 입문자가 ETF의 구조와 차이를 읽으며 탐색하는 청록색 학습 도구
+description: 입문자가 ETF의 구조와 차이를 읽으며 탐색하는 차분한 파랑 학습 도구
 colors:
-  primary: "#164b53"
-  ink: "#173d44"
-  muted: "#586e71"
-  paper: "#f7f8f3"
+  primary: "#355b7d"
+  ink: "#273849"
+  muted: "#586979"
+  paper: "#f8f9fa"
   surface: "#ffffff"
-  soft: "#eaf1ee"
-  line: "#d9e3df"
-  green: "#dff4b6"
+  soft: "#eef2f6"
+  line: "#dce2e8"
+  green: "#e1ebf4"
   focus: "#a4530c"
   warning-ink: "#70501e"
   warning-bg: "#fff3df"
@@ -41,13 +41,13 @@ components:
 
 ## Overview
 
-입문자를 위한 ETF 탐색·학습·비교 앱이다. 제품 근거는 PROJECT.md 및 README.md, 규칙은 docs/rules.js와 docs/data-core.js다. 기존 파도 로고, 청록과 연두, 밝은 바탕을 유지한다. 홈의 바다 그림만 브랜드 표현을 맡고, 제품 화면에서는 검색·설명·비교 작업을 우선한다. 거래 터미널의 긴장감이나 추천 순위 대시보드처럼 보이지 않게 한다.
+입문자를 위한 ETF 탐색·학습·비교 앱이다. 제품 근거는 PROJECT.md 및 README.md, 규칙은 docs/rules.js와 docs/data-core.js다. 기존 파도 로고와 밝은 바탕을 유지하며 채도 낮은 파랑을 사용한다. 홈의 바다 그림만 브랜드 표현을 맡고, 제품 화면에서는 검색·설명·비교 작업을 우선한다. 거래 터미널의 긴장감이나 추천 순위 대시보드처럼 보이지 않게 한다.
 
 한국어·한국시간 기준이며 한국어 글꼴의 자연스러운 줄바꿈을 보장한다. 새 글꼴 다운로드나 라이브러리가 없다. 행동 계약은 UX-CONTRACT.md가 소유한다.
 
 ## Colors
 
-기존 런타임 정본을 유지하는 Model B다. `docs/style.css :root → 공용 선택자 → 화면`으로 소비한다. 위 색상은 같은 이름의 CSS 변수에 대응하며 primary만 기존 --teal에 대응한다. 배경은 --paper, 패널은 --surface, 선택은 --teal/--green이다. 경고는 --warning-ink/--warning-bg와 설명 문구를 같이 사용한다. 초점은 --focus다. 스크롤바는 --scroll-thumb #8aa19b, --scroll-hover #586e71, --scroll-active #164b53, 트랙 --soft를 사용한다. 색상 변경 시 이 문서와 CSS를 함께 고친다.
+기존 런타임 정본을 유지하는 Model B다. `docs/style.css :root → 공용 선택자 → 화면`으로 소비한다. 위 색상은 같은 이름의 CSS 변수에 대응하며 primary만 기존 --teal에 대응한다. 배경은 --paper, 패널은 --surface, 선택은 --teal/--green이다. 경고는 --warning-ink/--warning-bg와 설명 문구를 같이 사용한다. 초점은 --focus다. 스크롤바는 --scroll-thumb #93a4b3, --scroll-hover #586979, --scroll-active #355b7d, 트랙 --soft를 사용한다. 색상 변경 시 이 문서와 CSS를 함께 고친다.
 
 ## Typography
 
@@ -85,7 +85,7 @@ panel→--radius-panel 16px, control→--radius-control 10px. 기존 둥근 형�
 
 - 자료 기준일과 미확보 상태, 기존 위험 설명을 유지한다.
 - 상세 설명을 읽는 중 비교 선택으로 화면 전체를 다시 그리지 않는다.
-- 원래의 청록·파도 정체성을 보존하고 금융 주문 화면으로 바꾸지 않는다.
+- 차분한 파랑·파도 정체성을 보존하고 금융 주문 화면으로 바꾸지 않는다.
 - 총수익률·성과 순위·개인별 투자 적합성을 새로 추론하지 않는다.
 
 ## 설명 자료 연결 · 2026-09-28
@@ -95,3 +95,7 @@ panel→--radius-panel 16px, control→--radius-control 10px. 기존 둥근 형�
 ## 전체 등록 상품 구성자료 · 2026-09-28
 
 일본 니케이225·유럽 유로스탁스50을 제외한 32개를 다룹니다. 27개는 공식 문서의 일부 구성종목·비중, 5개는 투자 구조 설명입니다. 전체 종목의 최신 보유 비중을 확보했다는 뜻은 아닙니다. CD 자료의 시점 불일치 등 수치 근거가 불명확하면 구조 설명과 확인 사유를 표시하고 비중을 추정하지 않습니다.
+
+## Soft blue · 2026-09-29
+
+배경 #f8f9fa, 흰 카드, 본문 #273849, 보조 글자 #586979, 주요 행동 #355b7d, 선택 배경 #e1ebf4. 넓은 영역에 고채도 파랑을 쓰지 않는다. 기존 --teal/--green 변수명은 호환을 위해 유지하되 파랑 값을 사용한다. 위험·오류는 기존 의미색을 유지하고 차트의 보조 계열은 구별 가능하도록 유지한다.

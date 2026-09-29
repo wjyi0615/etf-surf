@@ -68,3 +68,7 @@ The browser checks use the available in-app browser, not a full Safari/Firefox/A
 - In-app browser at 390px and 1280px: TIGER Kosdaq150 renders 10 dated composition items and percentages; stale-data notice visible. Mobile document width equals scroll width (390px). Screenshots inspected.
 - Versioned changed data scripts to avoid stale browser snapshots. Reset temporary viewport after verification.
 - Structure-only products do not imply complete/current holdings. CD source has maturity/date inconsistencies; numerical composition deliberately withheld.
+
+## Soft blue · 2026-09-29
+
+Shared palette updated without layout or data changes. Desktop 1280px home and mobile 390px guide screenshots reviewed; mobile scroll width equals viewport width. Text/background and primary button contrast exceed 4.5:1. JavaScript regression suite, syntax and diff checks pass. Temporary viewport reset and home preview left open.
