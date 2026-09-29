@@ -4,7 +4,7 @@
 
 [공개 사이트](https://wjyi0615.github.io/etf-surf/) · [배포 기록](https://github.com/wjyi0615/etf-surf/actions/workflows/pages.yml) · [가격 갱신 기록](https://github.com/wjyi0615/etf-surf/actions/workflows/update-prices.yml)
 
-> 이 README는 `codex/catalog-ui-consolidation` 작업본 기준입니다. 32개 상품, 전체 구성자료 연결, 차분한 파란색 디자인, 개인별 추천 중단 등의 변경은 아직 main에 병합·배포하지 않았습니다. 공개 사이트와 다를 수 있습니다.
+> main 배포본 기준입니다. 국내 상장 ETF 32개, 구성자료, 차분한 파란색 디자인을 제공합니다. 배포 완료 여부는 위 배포 기록에서 확인할 수 있습니다.
 
 ## 현재 범위
 
@@ -48,7 +48,7 @@ Python 3는 미리보기·가격 갱신, Node.js는 JavaScript 테스트에 사�
 ## 검증
 
 ```sh
-node tests/surf.cjs
+nodetests/surf.cjs
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 node --check docs/app.js
 node --check docs/rules.js
@@ -93,7 +93,7 @@ docs/
   data-health.js                  # 공용 출처·날짜 점검
   update-status.js                # 가격 갱신 상태
 scripts/                          # 가격 갱신·자료 점검·목록 검토
- tests/                           # JavaScript·Python 테스트
+tests/                           # JavaScript·Python 테스트
 .github/workflows/                # 갱신·Pages 배포
 ```
 
@@ -101,6 +101,6 @@ scripts/                          # 가격 갱신·자료 점검·목록 검토
 
 개인별 적합성·매매 시점·투자 비중을 판정하지 않습니다. 설문 추천 경로는 중단 안내만 제공합니다. 로그인·주문·계좌 연결·유료 자문은 없으며 비교 선택은 페이지 메모리에서만 유지됩니다. 법적 적합성이나 데이터 재배포 허가를 보장하지 않습니다. 미해결 사항은 [LEGAL-REVIEW.md](LEGAL-REVIEW.md)와 [KRX-SOURCE-REVIEW.md](KRX-SOURCE-REVIEW.md)에 기록합니다.
 
-`main`은 공개 사이트 기준, `codex/catalog-ui-consolidation`은 현재 통합 작업본입니다. 완료된 로컬 브랜치 18개는 통합 이력 포함 여부를 확인한 뒤 복구용 태그를 남겨 정리했습니다. 별도 이력·백업은 보존했습니다. [브랜치 정리·복구 기록](BRANCHES.md)을 참고하세요.
+`main`은 공개 사이트 기준이며 새 작업은 `codex/` 브랜치에서 진행합니다. 완료된 로컬 브랜치 18개는 통합 이력 포함 여부를 확인한 뒤 복구용 태그를 남겨 정리했습니다. 별도 이력·백업은 보존했습니다. [브랜치 정리·복구 기록](BRANCHES.md)을 참고하세요.
 
 디자인은 [DESIGN.md](DESIGN.md), 동작은 [UX-CONTRACT.md](UX-CONTRACT.md)를 따릅니다.
