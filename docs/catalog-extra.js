@@ -1,4 +1,4 @@
-/* Educational descriptions only. No prices or implied current holdings. */
+/* Educational descriptions; prices are unavailable. Holdings use separately dated official snapshots. */
 window.ETF_CATALOG_EXTRA = [
   {
     "ticker": "229200",
@@ -45,50 +45,6 @@ window.ETF_CATALOG_EXTRA = [
     }
   },
   {
-    "ticker": "241180",
-    "name": "TIGER 일본니케이225",
-    "issuer": "미래에셋자산운용",
-    "category": "equity",
-    "region": "japan",
-    "group": "nikkei",
-    "strategy": "broad",
-    "benchmark": null,
-    "productType": "공식 자료 기반 설명",
-    "description": "일본 니케이225를 투자 대상으로 살펴보는 상품이에요.",
-    "sourceUrl": "https://www.tigeretf.com/upload/etf/20241108075518004166.pdf",
-    "sourceAsOf": "2024-10-31",
-    "checkedAt": "2026-09-28",
-    "reading": {
-      "target": "일본 니케이225를 투자 대상으로 살펴보는 상품이에요.",
-      "drivers": "일본 기업의 주가와 환율 정책을 함께 확인해야 해요.",
-      "risk": "일본 시장 집중과 환율 관련 위험을 확인하세요.",
-      "check": "현재 투자설명서의 투자 대상·지수·환헤지 정책·비용을 확인하세요.",
-      "lesson": "risk"
-    }
-  },
-  {
-    "ticker": "195930",
-    "name": "TIGER 유로스탁스50(합성H)",
-    "issuer": "미래에셋자산운용",
-    "category": "equity",
-    "region": "europe",
-    "group": "euro50",
-    "strategy": "broad",
-    "benchmark": "EURO STOXX 50",
-    "productType": "공식 자료 기반 설명",
-    "description": "유럽 주식 지수의 성과를 장외파생상품으로 구현하는 합성 상품이에요.",
-    "sourceUrl": "https://www.tigeretf.com/upload/etf/20250804095127009829.pdf",
-    "sourceAsOf": "2025-07-31",
-    "checkedAt": "2026-09-28",
-    "reading": {
-      "target": "유럽 주식 지수의 성과를 장외파생상품으로 구현하는 합성 상품이에요.",
-      "drivers": "유럽 주가, 계약 상대방의 이행과 환헤지 결과에 영향을 받아요.",
-      "risk": "합성 거래상대방 위험이 있고 환헤지가 손실을 막지는 못해요.",
-      "check": "현재 투자설명서의 투자 대상·지수·환헤지 정책·비용을 확인하세요.",
-      "lesson": "risk"
-    }
-  },
-  {
     "ticker": "114820",
     "name": "TIGER 국채3년",
     "issuer": "미래에셋자산운용",
@@ -121,8 +77,8 @@ window.ETF_CATALOG_EXTRA = [
     "benchmark": null,
     "productType": "공식 자료 기반 설명",
     "description": "국내 종합채권에 투자하는 액티브 상품이에요.",
-    "sourceUrl": "https://www.samsungfund.com/etf/product/ytm.do",
-    "sourceAsOf": null,
+    "sourceUrl": "https://www.samsungfund.com/upload/kodex/newsroom/20250722174437650.pdf",
+    "sourceAsOf": "2025-06-30",
     "checkedAt": "2026-09-28",
     "reading": {
       "target": "국내 종합채권에 투자하는 액티브 상품이에요.",
@@ -143,8 +99,8 @@ window.ETF_CATALOG_EXTRA = [
     "benchmark": null,
     "productType": "공식 자료 기반 설명",
     "description": "국내 10년 국고채를 중심으로 살펴보는 액티브 상품이에요.",
-    "sourceUrl": "https://www.samsungfund.com/etf/product/ytm.do",
-    "sourceAsOf": null,
+    "sourceUrl": "https://m.samsungfund.com/sheet/20241108/2ETFL6_20241031.pdf",
+    "sourceAsOf": "2024-10-31",
     "checkedAt": "2026-09-28",
     "reading": {
       "target": "국내 10년 국고채를 중심으로 살펴보는 액티브 상품이에요.",
@@ -165,8 +121,8 @@ window.ETF_CATALOG_EXTRA = [
     "benchmark": null,
     "productType": "공식 자료 기반 설명",
     "description": "미국 10년 국채에 투자하는 환헤지형 액티브 상품이에요.",
-    "sourceUrl": "https://www.samsungfund.com/etf/product/ytm.do",
-    "sourceAsOf": null,
+    "sourceUrl": "https://www.samsungfund.com/upload/kodex/newsroom/20251020144727705.pdf",
+    "sourceAsOf": "2025-09-30",
     "checkedAt": "2026-09-28",
     "reading": {
       "target": "미국 10년 국채에 투자하는 환헤지형 액티브 상품이에요.",
@@ -275,8 +231,8 @@ window.ETF_CATALOG_EXTRA = [
     "benchmark": null,
     "productType": "공식 자료 기반 설명",
     "description": "CD 금리를 투자 대상으로 하는 합성 상품이에요.",
-    "sourceUrl": "https://www.tigeretf.com/ko/insight/news/view.do?detailsKey=902",
-    "sourceAsOf": null,
+    "sourceUrl": "https://investments.miraeasset.com/tigeretf/upload/etf/20250611092634007042.pdf",
+    "sourceAsOf": "2025-05-30",
     "checkedAt": "2026-09-28",
     "reading": {
       "target": "CD 금리를 투자 대상으로 하는 합성 상품이에요.",

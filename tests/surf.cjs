@@ -278,9 +278,9 @@ vm.runInContext('funds=savedFunds',ctx);
 // Description-only catalog: never fabricate prices, peer matches or performance.
 vm.runInContext(fs.readFileSync('docs/catalog-extra.js','utf8'),ctx);
 const extras=ctx.window.ETF_CATALOG_EXTRA,expanded=C.withDescriptions(funds,extras);
-assert.equal(expanded.length,34);assert.equal(extras.length,14);
+assert.equal(expanded.length,32);assert.equal(extras.length,12);
 assert.ok(!expanded.some(e=>e.ticker==='411060'));
-assert.equal(C.withDescriptions([],extras).length,14);
+assert.equal(C.withDescriptions([],extras).length,12);
 assert.throws(()=>C.withDescriptions(funds,[extras[0],extras[0]]));
 assert.throws(()=>C.withDescriptions(funds,[{...extras[0],sourceUrl:'javascript:alert(1)'}]));
 for(const e of expanded.filter(e=>e.reading)){
@@ -297,8 +297,8 @@ for(const e of extras){
  assert.ok(html.includes(e.reading.target));assert.ok(html.includes('가격 미확보 상품'));
  assert.ok(!html.includes('undefined'));assert.ok(!html.includes('NaN'));
 }
-ctx.location.hash='#/explore?region=japan';vm.runInContext('render(false)',ctx);
-assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,1);
+ctx.location.hash='#/explore?query=일본';vm.runInContext('render(false)',ctx);
+assert.equal((elements.main.innerHTML.match(/class="product-name"/g)||[]).length,0);
 ctx.location.hash='#/guide?topic=bonds&market=us';vm.runInContext('render(false)',ctx);
 assert.ok(elements.main.innerHTML.includes('0091C0'));
 ctx.location.hash='#/guide?topic=cash&group=kofr';vm.runInContext('render(false)',ctx);
@@ -308,4 +308,18 @@ assert.ok(vm.runInContext('compare()',ctx).includes('가격 미확보 상품'));
 ctx.location.hash='#/explore?query=존재하지않는상품';vm.runInContext('render(false)',ctx);
 assert.ok(elements.main.innerHTML.includes('검색 결과가 없어요'));
 assert.ok(fs.readFileSync('docs/index.html','utf8').indexOf('catalog-extra.js')<fs.readFileSync('docs/index.html','utf8').indexOf('app.js'));
-console.log('34-product catalog: descriptions, missing-price calculations, alphanumeric routes, markets, topics and mixed comparison passed.');
+console.log('32-product catalog: descriptions, missing-price calculations, alphanumeric routes, markets, topics and mixed comparison passed.');
+
+vm.runInContext(fs.readFileSync('docs/fundamentals.js','utf8'),ctx);
+for(const e of expanded){
+ const h=ctx.window.ETF_FUNDAMENTALS.holdings[e.ticker];
+ assert.ok(h && h.sourceUrl && h.asOf && h.checkedAt,e.ticker);
+ assert.ok(h.kind==='structure'||h.items.length>0,e.ticker);
+ const html=vm.runInContext(`composition(funds.find(e=>e.ticker==='${e.ticker}'))`,ctx);
+ assert.ok(html.includes(h.asOf));assert.ok(html.includes(h.sourceUrl.replaceAll("&","&amp;")),e.ticker+" "+h.sourceUrl);
+ if(h.kind==='structure')assert.ok(html.includes('실제 편입 비중표가 아닌'));
+ else {assert.ok(html.includes('holdings-list'));assert.ok(h.items.reduce((n,x)=>n+x.weight,0)<=100);}
+}
+assert.ok(!expanded.some(e=>['japan','europe'].includes(e.region)));
+assert.equal(Object.values(ctx.window.ETF_FUNDAMENTALS.holdings).filter(h=>h.kind==='structure').length,5);
+console.log('All 32 ETFs expose dated composition evidence: 27 partial holdings and 5 structure descriptions.');

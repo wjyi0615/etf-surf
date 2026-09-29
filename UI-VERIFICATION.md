@@ -61,3 +61,10 @@ The browser checks use the available in-app browser, not a full Safari/Firefox/A
 - Actual in-app browser: Japanese filter returns one ETF; detail shows source date, check date, stale notice and missing-price status. At 390px document width and scroll width both equal 390px; screenshot reviewed.
 - At 1280px, both Kosdaq ETFs can be selected and compared; missing prices suppress chart and shared-period metrics. Comparison removal button works. No observed browser console errors. Temporary viewport override reset; exploration preview left open.
 - JavaScript regression suite and Python 8-test suite pass. Strict premium audit retains three pre-existing delegated-button false positives (data-peer/data-select); handlers are delegated, not inline. Comparison removal verified in browser; peer logic covered by regression tests. Static audit is not reported as fully passing.
+
+## All registered composition evidence · 2026-09-29
+
+- 32 registered ETFs after Japan/Europe removal; regression tests verify all 32 source links/dates, 27 partial holdings lists and 5 explicitly labelled structure descriptions. No prices or performance series changed.
+- In-app browser at 390px and 1280px: TIGER Kosdaq150 renders 10 dated composition items and percentages; stale-data notice visible. Mobile document width equals scroll width (390px). Screenshots inspected.
+- Versioned changed data scripts to avoid stale browser snapshots. Reset temporary viewport after verification.
+- Structure-only products do not imply complete/current holdings. CD source has maturity/date inconsistencies; numerical composition deliberately withheld.
