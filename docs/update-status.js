@@ -1,1 +1,1 @@
-window.ETF_UPDATE = {"attemptedAt": "2026-10-31T01:44:34.786345+09:00", "state": "success", "asOf": "2026-10-30"};
+window.ETF_UPDATE = {"attemptedAt": "2026-11-03T05:25:23.858748+09:00", "state": "success", "asOf": "2026-11-02"};
